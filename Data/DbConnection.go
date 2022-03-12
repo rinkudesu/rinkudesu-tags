@@ -64,6 +64,14 @@ func (connection *DbConnection) QueryFunc(sql string, args []interface{}, scans 
 	return connection.pool.QueryFunc(context.Background(), sql, args, scans, f)
 }
 
+func (connection *DbConnection) Query(sql string) (pgx.Rows, error) {
+	if openErr := connection.ensureOpen(); openErr != nil {
+		return nil, openErr
+	}
+
+	return connection.pool.Query(context.Background(), sql)
+}
+
 func (connection *DbConnection) Close() {
 	connection.pool.Close()
 	connection.closed = true
