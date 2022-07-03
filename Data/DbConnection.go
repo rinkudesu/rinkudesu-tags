@@ -82,6 +82,10 @@ func (connection *DbConnection) Exec(sql string) error {
 }
 
 func (connection *DbConnection) Close() {
+	if connection.closed {
+		return
+	}
+
 	connection.pool.Close()
 	connection.closed = true
 }
