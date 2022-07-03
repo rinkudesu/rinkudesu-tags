@@ -55,13 +55,29 @@ func (e *Executor) initialiseMigrationFunctions() {
 }
 
 func initialMigration(executor Executor) {
-	_, err := executor.connection.Query("CREATE TABLE migrations (id integer PRIMARY KEY);")
+	err := executor.connection.Exec("BEGIN TRANSACTION;" +
+		"" +
+		"CREATE TABLE migrations (id integer PRIMARY KEY);" +
+		"" +
+		"CREATE TABLE tags (" +
+		"id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid()," +
+		"name CHARACTER VARYING(50) NOT NULL," +
+		"user_id UUID NOT NULL);" +
+		"" +
+		"CREATE TABLE links (" +
+		"id UUID PRIMARY KEY NOT NULL);" +
+		"" +
+		"CREATE TABLE link_tags (" +
+		"id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid()," +
+		"link_id UUID NOT NULL," +
+		"tag_id UUID NOT NULL," +
+		"CONSTRAINT fk_link FOREIGN KEY(link_id) REFERENCES links(id)," +
+		"CONSTRAINT fk_tag FOREIGN KEY(tag_id) REFERENCES tags(id));" +
+		"" +
+		"INSERT INTO migrations VALUES (0);" +
+		"" +
+		"COMMIT;")
 	if err != nil {
-		log.Panicln("Unable to create migrations table")
-	}
-
-	_, err = executor.connection.Query("INSERT INTO migrations VALUES (0);")
-	if err != nil {
-		log.Panicln("Unable to insert migration record")
+		log.Panicln("Unable to apply migration")
 	}
 }
