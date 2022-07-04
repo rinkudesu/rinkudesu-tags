@@ -3,15 +3,20 @@
 import (
 	"context"
 	"github.com/jackc/pgconn"
+	"github.com/jackc/pgtype"
+	pgtypeuuid "github.com/jackc/pgtype/ext/gofrs-uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
 	"os"
 )
 
-type DbConnection struct {
+var (
 	pool   *pgxpool.Pool
 	closed bool
+)
+
+type DbConnection struct {
 }
 
 func (connection *DbConnection) InitialiseEnv() error {
@@ -20,17 +25,31 @@ func (connection *DbConnection) InitialiseEnv() error {
 }
 
 func (connection *DbConnection) Initialise(connectionString string) error {
-	if connection.pool != nil {
+	if pool != nil {
 		return alreadyInitialisedError{}
 	}
 
-	pool, err := pgxpool.Connect(context.Background(), connectionString)
+	config, err := pgxpool.ParseConfig(connectionString)
+	if err != nil {
+		log.Panicln("Unable to create database connection config")
+	}
+
+	config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		conn.ConnInfo().RegisterDataType(pgtype.DataType{
+			Value: &pgtypeuuid.UUID{},
+			Name:  "uuid",
+			OID:   pgtype.UUIDOID,
+		})
+		return nil
+	}
+
+	localPool, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
-	connection.pool = pool
+	pool = localPool
 	return nil
 }
 
@@ -40,9 +59,9 @@ func (connection *DbConnection) QueryRow(sql string, args ...interface{}) (pgx.R
 	}
 
 	if len(args) == 0 {
-		return connection.pool.QueryRow(context.Background(), sql), nil
+		return pool.QueryRow(context.Background(), sql), nil
 	}
-	return connection.pool.QueryRow(context.Background(), sql, args), nil
+	return pool.QueryRow(context.Background(), sql, args), nil
 }
 
 func (connection *DbConnection) QueryRows(sql string, args ...interface{}) (pgx.Rows, error) {
@@ -51,9 +70,9 @@ func (connection *DbConnection) QueryRows(sql string, args ...interface{}) (pgx.
 	}
 
 	if len(args) == 0 {
-		return connection.pool.Query(context.Background(), sql)
+		return pool.Query(context.Background(), sql)
 	}
-	return connection.pool.Query(context.Background(), sql, args)
+	return pool.Query(context.Background(), sql, args)
 }
 
 func (connection *DbConnection) QueryFunc(sql string, args []interface{}, scans []interface{}, f func(pgx.QueryFuncRow) error) (pgconn.CommandTag, error) {
@@ -61,7 +80,7 @@ func (connection *DbConnection) QueryFunc(sql string, args []interface{}, scans 
 		return nil, openErr
 	}
 
-	return connection.pool.QueryFunc(context.Background(), sql, args, scans, f)
+	return pool.QueryFunc(context.Background(), sql, args, scans, f)
 }
 
 func (connection *DbConnection) Query(sql string) (pgx.Rows, error) {
@@ -69,7 +88,7 @@ func (connection *DbConnection) Query(sql string) (pgx.Rows, error) {
 		return nil, openErr
 	}
 
-	return connection.pool.Query(context.Background(), sql)
+	return pool.Query(context.Background(), sql)
 }
 
 func (connection *DbConnection) Exec(sql string) error {
@@ -77,17 +96,21 @@ func (connection *DbConnection) Exec(sql string) error {
 		return openErr
 	}
 
-	_, err := connection.pool.Exec(context.Background(), sql)
+	_, err := pool.Exec(context.Background(), sql)
 	return err
 }
 
 func (connection *DbConnection) Close() {
-	connection.pool.Close()
-	connection.closed = true
+	if closed {
+		return
+	}
+
+	pool.Close()
+	closed = true
 }
 
 func (connection *DbConnection) ensureOpen() error {
-	if connection.closed {
+	if closed || pool == nil {
 		return connectionClosedError{}
 	}
 	return nil
