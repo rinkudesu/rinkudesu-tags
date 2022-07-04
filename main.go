@@ -12,9 +12,12 @@ import (
 const basePath = "/api"
 
 func main() {
-	migrate()
+	var connection = Data.DbConnection{}
+	_ = connection.Initialise("postgres://postgres:postgres@localhost:5432/postgres")
+	defer connection.Close()
+	migrate(connection)
 
-	setupRoutes()
+	setupRoutes(connection)
 
 	err := http.ListenAndServe(":5000", nil) //todo: this nil should probably be *something*
 	if err != nil {
@@ -22,14 +25,12 @@ func main() {
 	}
 }
 
-func migrate() {
-	connection := Data.DbConnection{}
-	_ = connection.Initialise("postgres://postgres:postgres@localhost:5432/postgres")
-	defer connection.Close()
+func migrate(connection Data.DbConnection) {
 	migrator := Migrations.NewExecutor(connection)
 	migrator.Migrate()
 }
 
-func setupRoutes() {
+func setupRoutes(connection Data.DbConnection) {
 	Routers.SetupTagsRoutes(basePath)
+	Routers.SetupTagsDatabase(connection)
 }
