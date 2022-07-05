@@ -61,7 +61,7 @@ func (connection *DbConnection) QueryRow(sql string, args ...interface{}) (pgx.R
 	if len(args) == 0 {
 		return pool.QueryRow(context.Background(), sql), nil
 	}
-	return pool.QueryRow(context.Background(), sql, args), nil
+	return pool.QueryRow(context.Background(), sql, args...), nil
 }
 
 func (connection *DbConnection) QueryRows(sql string, args ...interface{}) (pgx.Rows, error) {
@@ -72,7 +72,7 @@ func (connection *DbConnection) QueryRows(sql string, args ...interface{}) (pgx.
 	if len(args) == 0 {
 		return pool.Query(context.Background(), sql)
 	}
-	return pool.Query(context.Background(), sql, args)
+	return pool.Query(context.Background(), sql, args...)
 }
 
 func (connection *DbConnection) QueryFunc(sql string, args []interface{}, scans []interface{}, f func(pgx.QueryFuncRow) error) (pgconn.CommandTag, error) {
@@ -91,12 +91,16 @@ func (connection *DbConnection) Query(sql string) (pgx.Rows, error) {
 	return pool.Query(context.Background(), sql)
 }
 
-func (connection *DbConnection) Exec(sql string) error {
+func (connection *DbConnection) Exec(sql string, args ...interface{}) error {
 	if openErr := connection.ensureOpen(); openErr != nil {
 		return openErr
 	}
 
-	_, err := pool.Exec(context.Background(), sql)
+	if len(args) == 0 {
+		_, err := pool.Exec(context.Background(), sql)
+		return err
+	}
+	_, err := pool.Exec(context.Background(), sql, args...)
 	return err
 }
 

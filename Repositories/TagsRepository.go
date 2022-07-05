@@ -2,7 +2,8 @@ package Repositories
 
 import (
 	"errors"
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
+	"github.com/jackc/pgx/v4"
 	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Models"
 )
@@ -29,6 +30,37 @@ func (repository *TagsRepository) GetTags() ([]Models.Tag, error) {
 		tags = append(tags, Models.Tag{Id: id, Name: name, UserId: userId})
 	}
 	return tags, nil
+}
+
+func (repository *TagsRepository) GetTag(id uuid.UUID) (*Models.Tag, error) {
+	row, err := repository.connection.QueryRow("select name, user_id from tags where id = $1", id)
+	if err != nil {
+		return nil, err
+	}
+	var name string
+	var userId uuid.UUID
+	err = row.Scan(&name, &userId)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &Models.Tag{Id: id, Name: name, UserId: userId}, nil
+}
+
+func (repository *TagsRepository) Create(tag *Models.Tag) (*Models.Tag, error) {
+	result, err := repository.connection.QueryRow("insert into tags (name, user_id) values ($1, $2) returning id", tag.Name, tag.UserId)
+	if err != nil {
+		return nil, err
+	}
+	var newId uuid.UUID
+	err = result.Scan(&newId)
+	if err != nil {
+		return nil, err //todo: figure out what to do when name/user is duplicated
+	}
+	tag.Id = newId
+	return tag, nil
 }
 
 func (repository *TagsRepository) Init(initConnection Data.DbConnection) {
