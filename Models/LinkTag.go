@@ -1,6 +1,6 @@
 ﻿package Models
 
-import "github.com/google/uuid"
+import "github.com/gofrs/uuid"
 
 type LinkTag struct {
 	Id     uuid.UUID `json:"id"`
