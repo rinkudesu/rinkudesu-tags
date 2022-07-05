@@ -16,12 +16,23 @@ var (
 
 func handleTags(w http.ResponseWriter, r *http.Request) {
 	controller := getController()
-	if tagId := r.URL.Query().Get("id"); r.URL.Query().Has("id") {
-		controller.GetTag(w, tagId)
-		return
+	switch r.Method {
+	case http.MethodGet:
+		{
+			if tagId := r.URL.Query().Get("id"); r.URL.Query().Has("id") {
+				controller.GetTag(w, tagId)
+				break
+			}
+			controller.GetTags(w)
+			break
+		}
+	case http.MethodPost:
+		{
+			controller.CreateTag(w, r.Body)
+			break
+		}
 	}
 
-	controller.GetTags(w)
 }
 
 func SetupTagsRoutes(basePath string) {
