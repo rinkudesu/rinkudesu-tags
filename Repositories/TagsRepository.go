@@ -63,6 +63,18 @@ func (repository *TagsRepository) Create(tag *Models.Tag) (*Models.Tag, error) {
 	return tag, nil
 }
 
+func (repository *TagsRepository) Update(tag *Models.Tag) (*Models.Tag, error) {
+	result, err := repository.connection.Exec("update tags set name = $1, user_id = $2 where id = $3", tag.Name, tag.UserId, tag.Id)
+	//todo: figure out what to do when name duplicated
+	if err != nil {
+		return nil, err
+	}
+	if result.RowsAffected() <= 0 {
+		return nil, nil
+	}
+	return tag, nil
+}
+
 func (repository *TagsRepository) Init(initConnection Data.DbConnection) {
 	repository.connection = initConnection
 }

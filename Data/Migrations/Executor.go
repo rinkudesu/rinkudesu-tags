@@ -55,7 +55,7 @@ func (e *Executor) initialiseMigrationFunctions() {
 }
 
 func initialMigration(executor Executor) {
-	err := executor.connection.Exec("BEGIN TRANSACTION;" +
+	_, err := executor.connection.Exec("BEGIN TRANSACTION;" +
 		"" +
 		"CREATE TABLE migrations (id integer PRIMARY KEY);" +
 		"" +

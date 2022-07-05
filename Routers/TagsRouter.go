@@ -31,6 +31,11 @@ func handleTags(w http.ResponseWriter, r *http.Request) {
 			controller.CreateTag(w, r.Body)
 			break
 		}
+	case http.MethodPut:
+		{
+			controller.UpdateTag(w, r.Body)
+			break
+		}
 	}
 
 }
