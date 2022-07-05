@@ -47,12 +47,7 @@ func (controller *TagsController) GetTag(w http.ResponseWriter, id string) {
 }
 
 func (controller *TagsController) CreateTag(w http.ResponseWriter, tagBody io.ReadCloser) {
-	defer func() {
-		err := tagBody.Close()
-		if err != nil {
-			//todo: log
-		}
-	}()
+	defer closeBody(tagBody)
 	body, err := io.ReadAll(tagBody)
 	if err != nil {
 		BadRequest(w)
@@ -74,6 +69,13 @@ func (controller *TagsController) CreateTag(w http.ResponseWriter, tagBody io.Re
 		return
 	}
 	writeJsonResponse(w, 201, returnedTag)
+}
+
+func closeBody(body io.ReadCloser) {
+	err := body.Close()
+	if err != nil {
+		//todo: log
+	}
 }
 
 func writeJsonResponse(w http.ResponseWriter, code int, tags interface{}) {
