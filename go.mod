@@ -3,6 +3,7 @@ module rinkudesu-tags
 go 1.17
 
 require (
+	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgconn v1.10.1
 	github.com/jackc/pgtype v1.9.1
@@ -10,7 +11,6 @@ require (
 )
 
 require (
-	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
