@@ -71,6 +71,31 @@ func (controller *TagsController) CreateTag(w http.ResponseWriter, tagBody io.Re
 	writeJsonResponse(w, 201, returnedTag)
 }
 
+func (controller *TagsController) UpdateTag(w http.ResponseWriter, tagBody io.ReadCloser) {
+	defer closeBody(tagBody)
+	body, err := io.ReadAll(tagBody)
+	if err != nil {
+		BadRequest(w)
+		return
+	}
+	var tag Models.Tag
+	err = json2.Unmarshal(body, &tag)
+	if err != nil {
+		BadRequest(w)
+		return
+	}
+	returnedTag, err := controller.repository.Update(&tag)
+	if err != nil {
+		BadRequest(w)
+		return
+	}
+	if returnedTag == nil {
+		NotFound(w)
+		return
+	}
+	writeJsonResponse(w, 200, returnedTag)
+}
+
 func closeBody(body io.ReadCloser) {
 	err := body.Close()
 	if err != nil {
