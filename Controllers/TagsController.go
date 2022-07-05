@@ -73,6 +73,7 @@ func (controller *TagsController) CreateTag(w http.ResponseWriter, tagBody io.Re
 
 func (controller *TagsController) UpdateTag(w http.ResponseWriter, tagBody io.ReadCloser) {
 	defer closeBody(tagBody)
+
 	body, err := io.ReadAll(tagBody)
 	if err != nil {
 		BadRequest(w)
@@ -84,6 +85,7 @@ func (controller *TagsController) UpdateTag(w http.ResponseWriter, tagBody io.Re
 		BadRequest(w)
 		return
 	}
+
 	returnedTag, err := controller.repository.Update(&tag)
 	if err != nil {
 		BadRequest(w)
@@ -93,6 +95,7 @@ func (controller *TagsController) UpdateTag(w http.ResponseWriter, tagBody io.Re
 		NotFound(w)
 		return
 	}
+
 	writeJsonResponse(w, 200, returnedTag)
 }
 
