@@ -74,7 +74,6 @@ func (controller *TagsController) CreateTag(w http.ResponseWriter, tagBody io.Re
 		return
 	}
 	writeJsonResponse(w, 201, returnedTag)
-	//todo: unique index on name,user
 }
 
 func writeJsonResponse(w http.ResponseWriter, code int, tags interface{}) {
