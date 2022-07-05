@@ -49,6 +49,20 @@ func (repository *TagsRepository) GetTag(id uuid.UUID) (*Models.Tag, error) {
 	return &Models.Tag{Id: id, Name: name, UserId: userId}, nil
 }
 
+func (repository *TagsRepository) Create(tag *Models.Tag) (*Models.Tag, error) {
+	result, err := repository.connection.QueryRow("insert into tags (name, user_id) values ($1, $2) returning id", tag.Name, tag.UserId)
+	if err != nil {
+		return nil, err
+	}
+	var newId uuid.UUID
+	err = result.Scan(&newId)
+	if err != nil {
+		return nil, err
+	}
+	tag.Id = newId
+	return tag, nil
+}
+
 func (repository *TagsRepository) Init(initConnection Data.DbConnection) {
 	repository.connection = initConnection
 }
