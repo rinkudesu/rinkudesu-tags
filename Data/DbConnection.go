@@ -91,17 +91,15 @@ func (connection *DbConnection) Query(sql string) (pgx.Rows, error) {
 	return pool.Query(context.Background(), sql)
 }
 
-func (connection *DbConnection) Exec(sql string, args ...interface{}) error {
+func (connection *DbConnection) Exec(sql string, args ...interface{}) (pgconn.CommandTag, error) {
 	if openErr := connection.ensureOpen(); openErr != nil {
-		return openErr
+		return nil, openErr
 	}
 
 	if len(args) == 0 {
-		_, err := pool.Exec(context.Background(), sql)
-		return err
+		return pool.Exec(context.Background(), sql)
 	}
-	_, err := pool.Exec(context.Background(), sql, args...)
-	return err
+	return pool.Exec(context.Background(), sql, args...)
 }
 
 func (connection *DbConnection) Close() {
