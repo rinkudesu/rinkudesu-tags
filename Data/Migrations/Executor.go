@@ -74,6 +74,8 @@ func initialMigration(executor Executor) {
 		"CONSTRAINT fk_link FOREIGN KEY(link_id) REFERENCES links(id)," +
 		"CONSTRAINT fk_tag FOREIGN KEY(tag_id) REFERENCES tags(id));" +
 		"" +
+		"CREATE UNIQUE INDEX idx_tags_name_user on tags(name, user_id);" +
+		"" +
 		"INSERT INTO migrations VALUES (0);" +
 		"" +
 		"COMMIT;")

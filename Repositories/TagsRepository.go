@@ -57,7 +57,7 @@ func (repository *TagsRepository) Create(tag *Models.Tag) (*Models.Tag, error) {
 	var newId uuid.UUID
 	err = result.Scan(&newId)
 	if err != nil {
-		return nil, err
+		return nil, err //todo: figure out what to do when name/user is duplicated
 	}
 	tag.Id = newId
 	return tag, nil
