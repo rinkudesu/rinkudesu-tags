@@ -75,6 +75,11 @@ func (repository *TagsRepository) Update(tag *Models.Tag) (*Models.Tag, error) {
 	return tag, nil
 }
 
+func (repository *TagsRepository) Delete(id uuid.UUID) error {
+	_, err := repository.connection.Exec("call delete_tag($1::uuid);", id)
+	return err
+}
+
 func (repository *TagsRepository) Init(initConnection Data.DbConnection) {
 	repository.connection = initConnection
 }
