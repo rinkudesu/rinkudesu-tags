@@ -76,8 +76,14 @@ func initialMigration(executor Executor) {
 		"" +
 		"CREATE UNIQUE INDEX idx_tags_name_user on tags(name, user_id);" +
 		"" +
-		"INSERT INTO migrations VALUES (0);" +
-		"" +
+		"INSERT INTO migrations VALUES (0);\n" +
+		"" + //todo: this should be read from some file
+		"create or replace procedure delete_tag(to_delete uuid) language plpgsql\n" +
+		"as $$\n" +
+		"BEGIN\n" +
+		"delete from link_tags where tag_id = to_delete;\n" +
+		"delete from tags where id = to_delete;\n" +
+		"END; $$;\n" +
 		"COMMIT;")
 	if err != nil {
 		log.Panicln("Unable to apply migration")
