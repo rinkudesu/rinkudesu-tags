@@ -99,6 +99,21 @@ func (controller *TagsController) UpdateTag(w http.ResponseWriter, tagBody io.Re
 	writeJsonResponse(w, 200, returnedTag)
 }
 
+func (controller *TagsController) DeleteTag(w http.ResponseWriter, id string) {
+	uuidValue, err := uuid.FromString(id)
+	if err != nil {
+		BadRequest(w)
+		return
+	}
+
+	err = controller.repository.Delete(uuidValue)
+	if err != nil {
+		BadRequest(w)
+		return
+	}
+	Ok(w)
+}
+
 func closeBody(body io.ReadCloser) {
 	err := body.Close()
 	if err != nil {

@@ -36,6 +36,15 @@ func handleTags(w http.ResponseWriter, r *http.Request) {
 			controller.UpdateTag(w, r.Body)
 			break
 		}
+	case http.MethodDelete:
+		{
+			if tagId := r.URL.Query().Get("id"); r.URL.Query().Has("id") {
+				controller.DeleteTag(w, tagId)
+				break
+			}
+			Controllers.BadRequest(w)
+			break
+		}
 	}
 
 }
