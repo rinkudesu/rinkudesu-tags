@@ -30,7 +30,7 @@ func migrate(connection Data.DbConnection) {
 	migrator.Migrate()
 }
 
-func setupRoutes(connection Data.DbConnection) {
+func setupRoutes(connection Data.DbConnector) {
 	Routers.SetupTagsRoutes(basePath)
 	Routers.SetupTagsDatabase(connection)
 }

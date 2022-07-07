@@ -9,10 +9,10 @@ import (
 )
 
 type TagsRepository struct {
-	connection Data.DbConnection
+	connection Data.DbConnector
 }
 
-func NewTagsRepository(connection Data.DbConnection) *TagsRepository {
+func NewTagsRepository(connection Data.DbConnector) *TagsRepository {
 	return &TagsRepository{connection: connection}
 }
 

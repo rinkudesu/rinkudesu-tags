@@ -11,7 +11,7 @@ import (
 const path = "tags"
 
 var (
-	database Data.DbConnection
+	database Data.DbConnector
 )
 
 func handleTags(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +54,7 @@ func SetupTagsRoutes(basePath string) {
 	http.Handle(fmt.Sprintf("%s/v1/%s", basePath, path), tagHandler)
 }
 
-func SetupTagsDatabase(initDatabase Data.DbConnection) {
+func SetupTagsDatabase(initDatabase Data.DbConnector) {
 	database = initDatabase
 }
 
