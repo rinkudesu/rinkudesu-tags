@@ -12,6 +12,10 @@ type TagsRepository struct {
 	connection Data.DbConnection
 }
 
+func NewTagsRepository(connection Data.DbConnection) *TagsRepository {
+	return &TagsRepository{connection: connection}
+}
+
 func (repository *TagsRepository) GetTags() ([]Models.Tag, error) {
 	rows, err := repository.connection.Query("select * from tags")
 	if err != nil {
@@ -78,8 +82,4 @@ func (repository *TagsRepository) Update(tag *Models.Tag) (*Models.Tag, error) {
 func (repository *TagsRepository) Delete(id uuid.UUID) error {
 	_, err := repository.connection.Exec("call delete_tag($1::uuid);", id)
 	return err
-}
-
-func (repository *TagsRepository) Init(initConnection Data.DbConnection) {
-	repository.connection = initConnection
 }

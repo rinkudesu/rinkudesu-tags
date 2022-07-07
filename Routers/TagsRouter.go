@@ -60,9 +60,7 @@ func SetupTagsDatabase(initDatabase Data.DbConnection) {
 
 //todo: this is so bad...
 func getController() Controllers.TagsController {
-	var repository = Repositories.TagsRepository{}
-	repository.Init(database)
-	var controller = Controllers.TagsController{}
-	controller.Init(repository)
-	return controller
+	var repository = Repositories.NewTagsRepository(database)
+	var controller = Controllers.NewTagsController(*repository)
+	return *controller
 }
