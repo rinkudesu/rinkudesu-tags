@@ -69,21 +69,13 @@ func initialMigration(executor Executor) {
 		"" +
 		"CREATE TABLE link_tags (" +
 		"id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid()," +
-		"link_id UUID NOT NULL," +
-		"tag_id UUID NOT NULL," +
-		"CONSTRAINT fk_link FOREIGN KEY(link_id) REFERENCES links(id)," +
-		"CONSTRAINT fk_tag FOREIGN KEY(tag_id) REFERENCES tags(id));" +
+		"link_id UUID NOT NULL REFERENCES links(id) ON DELETE CASCADE," +
+		"tag_id UUID NOT NULL REFERENCES tags(id) ON DELETE CASCADE);" +
 		"" +
 		"CREATE UNIQUE INDEX idx_tags_name_user on tags(name, user_id);" +
 		"" +
 		"INSERT INTO migrations VALUES (0);\n" +
-		"" + //todo: this should be read from some file
-		"create or replace procedure delete_tag(to_delete uuid) language plpgsql\n" +
-		"as $$\n" +
-		"BEGIN\n" +
-		"delete from link_tags where tag_id = to_delete;\n" +
-		"delete from tags where id = to_delete;\n" +
-		"END; $$;\n" +
+		"" +
 		"COMMIT;")
 	if err != nil {
 		log.Panicln("Unable to apply migration")

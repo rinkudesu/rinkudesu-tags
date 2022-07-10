@@ -80,6 +80,6 @@ func (repository *TagsRepository) Update(tag *Models.Tag) (*Models.Tag, error) {
 }
 
 func (repository *TagsRepository) Delete(id uuid.UUID) error {
-	_, err := repository.connection.Exec("call delete_tag($1::uuid);", id)
+	_, err := repository.connection.Exec("delete from tags where id = $1", id)
 	return err
 }
