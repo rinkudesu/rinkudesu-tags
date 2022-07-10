@@ -2,7 +2,6 @@
 
 import (
 	"context"
-	"github.com/jackc/pgconn"
 	"github.com/jackc/pgtype"
 	pgtypeuuid "github.com/jackc/pgtype/ext/gofrs-uuid"
 	"github.com/jackc/pgx/v4"
@@ -53,37 +52,23 @@ func (connection DbConnection) Initialise(connectionString string) error {
 	return nil
 }
 
-func (connection DbConnection) QueryRow(sql string, args ...interface{}) (pgx.Row, error) {
+func (connection DbConnection) QueryRow(sql string, args ...interface{}) (Row, error) {
 	if openErr := connection.ensureOpen(); openErr != nil {
 		return nil, openErr
 	}
 
-	if len(args) == 0 {
-		return pool.QueryRow(context.Background(), sql), nil
-	}
 	return pool.QueryRow(context.Background(), sql, args...), nil
 }
 
-func (connection DbConnection) QueryRows(sql string, args ...interface{}) (pgx.Rows, error) {
+func (connection DbConnection) QueryRows(sql string, args ...interface{}) (Rows, error) {
 	if openErr := connection.ensureOpen(); openErr != nil {
 		return nil, openErr
 	}
 
-	if len(args) == 0 {
-		return pool.Query(context.Background(), sql)
-	}
 	return pool.Query(context.Background(), sql, args...)
 }
 
-func (connection DbConnection) QueryFunc(sql string, args []interface{}, scans []interface{}, f func(pgx.QueryFuncRow) error) (pgconn.CommandTag, error) {
-	if openErr := connection.ensureOpen(); openErr != nil {
-		return nil, openErr
-	}
-
-	return pool.QueryFunc(context.Background(), sql, args, scans, f)
-}
-
-func (connection DbConnection) Query(sql string) (pgx.Rows, error) {
+func (connection DbConnection) Query(sql string) (Rows, error) {
 	if openErr := connection.ensureOpen(); openErr != nil {
 		return nil, openErr
 	}
@@ -91,14 +76,11 @@ func (connection DbConnection) Query(sql string) (pgx.Rows, error) {
 	return pool.Query(context.Background(), sql)
 }
 
-func (connection DbConnection) Exec(sql string, args ...interface{}) (pgconn.CommandTag, error) {
+func (connection DbConnection) Exec(sql string, args ...interface{}) (ExecResult, error) {
 	if openErr := connection.ensureOpen(); openErr != nil {
 		return nil, openErr
 	}
 
-	if len(args) == 0 {
-		return pool.Exec(context.Background(), sql)
-	}
 	return pool.Exec(context.Background(), sql, args...)
 }
 
