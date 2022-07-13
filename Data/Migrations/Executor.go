@@ -8,11 +8,11 @@ import (
 const currentVersion = 0
 
 type Executor struct {
-	connection Data.DbConnection
+	connection Data.DbConnector
 	migrations []func(executor Executor)
 }
 
-func NewExecutor(connection Data.DbConnection) Executor {
+func NewExecutor(connection Data.DbConnector) Executor {
 	var executor = Executor{
 		connection: connection,
 	}
