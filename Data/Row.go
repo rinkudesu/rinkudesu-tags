@@ -7,7 +7,7 @@ type Row interface {
 type Rows interface {
 	Scan(...interface{}) error
 	Next() bool
-	RawValues() [][]byte
+	Close()
 }
 
 type ExecResult interface {
