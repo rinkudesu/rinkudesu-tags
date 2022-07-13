@@ -4,20 +4,19 @@ import (
 	"errors"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4"
-	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Models"
 )
 
 type TagsRepository struct {
-	connection Data.DbConnector
+	executor TagQueryExecutable
 }
 
-func NewTagsRepository(connection Data.DbConnector) *TagsRepository {
-	return &TagsRepository{connection: connection}
+func NewTagsRepository(executor TagQueryExecutable) *TagsRepository {
+	return &TagsRepository{executor: executor}
 }
 
 func (repository *TagsRepository) GetTags() ([]Models.Tag, error) {
-	rows, err := repository.connection.Query("select * from tags")
+	rows, err := repository.executor.GetAll()
 	if err != nil {
 		return nil, err
 	}
@@ -37,24 +36,21 @@ func (repository *TagsRepository) GetTags() ([]Models.Tag, error) {
 }
 
 func (repository *TagsRepository) GetTag(id uuid.UUID) (*Models.Tag, error) {
-	row, err := repository.connection.QueryRow("select name, user_id from tags where id = $1", id)
+	row, err := repository.executor.GetSingleById(id)
 	if err != nil {
 		return nil, err
 	}
-	var name string
-	var userId uuid.UUID
-	err = row.Scan(&name, &userId)
+	tag, err := repository.executor.ScanIntoTag(row, id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, nil
 		}
-		return nil, err
 	}
-	return &Models.Tag{Id: id, Name: name, UserId: userId}, nil
+	return tag, nil
 }
 
 func (repository *TagsRepository) Create(tag *Models.Tag) (*Models.Tag, error) {
-	result, err := repository.connection.QueryRow("insert into tags (name, user_id) values ($1, $2) returning id", tag.Name, tag.UserId)
+	result, err := repository.executor.Insert(tag)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +64,7 @@ func (repository *TagsRepository) Create(tag *Models.Tag) (*Models.Tag, error) {
 }
 
 func (repository *TagsRepository) Update(tag *Models.Tag) (*Models.Tag, error) {
-	result, err := repository.connection.Exec("update tags set name = $1, user_id = $2 where id = $3", tag.Name, tag.UserId, tag.Id)
+	result, err := repository.executor.Update(tag)
 	//todo: figure out what to do when name duplicated
 	if err != nil {
 		return nil, err
@@ -80,6 +76,5 @@ func (repository *TagsRepository) Update(tag *Models.Tag) (*Models.Tag, error) {
 }
 
 func (repository *TagsRepository) Delete(id uuid.UUID) error {
-	_, err := repository.connection.Exec("delete from tags where id = $1", id)
-	return err
+	return repository.executor.Delete(id)
 }
