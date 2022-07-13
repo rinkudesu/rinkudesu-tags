@@ -21,7 +21,7 @@ func (repository *TagsRepository) GetTags() ([]Models.Tag, error) {
 	if err != nil {
 		return nil, err
 	}
-	tags := make([]Models.Tag, len(rows.RawValues()))
+	tags := make([]Models.Tag, 0)
 	for rows.Next() {
 		var id uuid.UUID
 		var name string
