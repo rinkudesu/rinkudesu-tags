@@ -2,7 +2,6 @@
 
 import (
 	"context"
-	"github.com/jackc/pgconn"
 	"github.com/jackc/pgtype"
 	pgtypeuuid "github.com/jackc/pgtype/ext/gofrs-uuid"
 	"github.com/jackc/pgx/v4"
@@ -11,12 +10,9 @@ import (
 	"os"
 )
 
-var (
+type DbConnection struct {
 	pool   *pgxpool.Pool
 	closed bool
-)
-
-type DbConnection struct {
 }
 
 func (connection *DbConnection) InitialiseEnv() error {
@@ -25,7 +21,7 @@ func (connection *DbConnection) InitialiseEnv() error {
 }
 
 func (connection *DbConnection) Initialise(connectionString string) error {
-	if pool != nil {
+	if connection.pool != nil {
 		return alreadyInitialisedError{}
 	}
 
@@ -49,70 +45,55 @@ func (connection *DbConnection) Initialise(connectionString string) error {
 		return err
 	}
 
-	pool = localPool
+	connection.pool = localPool
+	connection.closed = false
 	return nil
 }
 
-func (connection *DbConnection) QueryRow(sql string, args ...interface{}) (pgx.Row, error) {
+func (connection *DbConnection) QueryRow(sql string, args ...interface{}) (Row, error) {
 	if openErr := connection.ensureOpen(); openErr != nil {
 		return nil, openErr
 	}
 
-	if len(args) == 0 {
-		return pool.QueryRow(context.Background(), sql), nil
-	}
-	return pool.QueryRow(context.Background(), sql, args...), nil
+	return connection.pool.QueryRow(context.Background(), sql, args...), nil
 }
 
-func (connection *DbConnection) QueryRows(sql string, args ...interface{}) (pgx.Rows, error) {
+func (connection *DbConnection) QueryRows(sql string, args ...interface{}) (Rows, error) {
 	if openErr := connection.ensureOpen(); openErr != nil {
 		return nil, openErr
 	}
 
-	if len(args) == 0 {
-		return pool.Query(context.Background(), sql)
-	}
-	return pool.Query(context.Background(), sql, args...)
+	return connection.pool.Query(context.Background(), sql, args...)
 }
 
-func (connection *DbConnection) QueryFunc(sql string, args []interface{}, scans []interface{}, f func(pgx.QueryFuncRow) error) (pgconn.CommandTag, error) {
+func (connection *DbConnection) Query(sql string) (Rows, error) {
 	if openErr := connection.ensureOpen(); openErr != nil {
 		return nil, openErr
 	}
 
-	return pool.QueryFunc(context.Background(), sql, args, scans, f)
+	return connection.pool.Query(context.Background(), sql)
 }
 
-func (connection *DbConnection) Query(sql string) (pgx.Rows, error) {
+func (connection *DbConnection) Exec(sql string, args ...interface{}) (ExecResult, error) {
 	if openErr := connection.ensureOpen(); openErr != nil {
 		return nil, openErr
 	}
 
-	return pool.Query(context.Background(), sql)
-}
-
-func (connection *DbConnection) Exec(sql string, args ...interface{}) (pgconn.CommandTag, error) {
-	if openErr := connection.ensureOpen(); openErr != nil {
-		return nil, openErr
-	}
-
-	if len(args) == 0 {
-		return pool.Exec(context.Background(), sql)
-	}
-	return pool.Exec(context.Background(), sql, args...)
+	return connection.pool.Exec(context.Background(), sql, args...)
 }
 
 func (connection *DbConnection) Close() {
-	if closed {
+	if connection.closed {
 		return
 	}
 
-	pool.Close()
-	closed = true
+	connection.pool.Close()
+	connection.pool = nil
+	connection.closed = true
 }
 
 func (connection *DbConnection) ensureOpen() error {
-	if closed || pool == nil {
+	if connection.closed || connection.pool == nil {
 		return connectionClosedError{}
 	}
 	return nil

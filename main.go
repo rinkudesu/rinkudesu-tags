@@ -17,7 +17,7 @@ func main() {
 	defer connection.Close()
 	migrate(connection)
 
-	setupRoutes(connection)
+	setupRoutes(&connection)
 
 	err := http.ListenAndServe(":5000", nil) //todo: this nil should probably be *something*
 	if err != nil {
@@ -26,11 +26,11 @@ func main() {
 }
 
 func migrate(connection Data.DbConnection) {
-	migrator := Migrations.NewExecutor(connection)
+	migrator := Migrations.NewExecutor(&connection)
 	migrator.Migrate()
 }
 
-func setupRoutes(connection Data.DbConnection) {
+func setupRoutes(connection Data.DbConnector) {
 	Routers.SetupTagsRoutes(basePath)
 	Routers.SetupTagsDatabase(connection)
 }

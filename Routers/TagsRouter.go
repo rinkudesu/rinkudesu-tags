@@ -11,7 +11,7 @@ import (
 const path = "tags"
 
 var (
-	database Data.DbConnection
+	database Data.DbConnector
 )
 
 func handleTags(w http.ResponseWriter, r *http.Request) {
@@ -54,15 +54,13 @@ func SetupTagsRoutes(basePath string) {
 	http.Handle(fmt.Sprintf("%s/v1/%s", basePath, path), tagHandler)
 }
 
-func SetupTagsDatabase(initDatabase Data.DbConnection) {
+func SetupTagsDatabase(initDatabase Data.DbConnector) {
 	database = initDatabase
 }
 
 //todo: this is so bad...
 func getController() Controllers.TagsController {
-	var repository = Repositories.TagsRepository{}
-	repository.Init(database)
-	var controller = Controllers.TagsController{}
-	controller.Init(repository)
-	return controller
+	var repository = Repositories.NewTagsRepository(Repositories.NewTagQueryExecutor(&database))
+	var controller = Controllers.NewTagsController(*repository)
+	return *controller
 }

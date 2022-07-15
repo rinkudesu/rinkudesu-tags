@@ -15,6 +15,10 @@ type TagsController struct {
 	repository Repositories.TagsRepository
 }
 
+func NewTagsController(repository Repositories.TagsRepository) *TagsController {
+	return &TagsController{repository: repository}
+}
+
 func (controller *TagsController) GetTags(w http.ResponseWriter) {
 	tags, err := controller.repository.GetTags()
 	if err != nil {
@@ -133,8 +137,4 @@ func writeJsonResponse(w http.ResponseWriter, code int, tags interface{}) {
 		InternalServerError(w)
 		return
 	}
-}
-
-func (controller *TagsController) Init(initRepository Repositories.TagsRepository) {
-	controller.repository = initRepository
 }
