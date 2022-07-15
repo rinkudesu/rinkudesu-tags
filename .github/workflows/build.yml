@@ -19,6 +19,9 @@ jobs:
     name: test
     runs-on: ubuntu-latest
     
+    env: 
+      TEST_POSTGRES: postgres://postgres:postgres@postgres:5432/
+    
     services:
       postgres:
         image: postgres
