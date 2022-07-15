@@ -1,17 +1,16 @@
 package Repositories
 
 import (
-	"fmt"
 	"github.com/gofrs/uuid"
 	"rinkudesu-tags/Data"
-	"rinkudesu-tags/Data/Migrations"
+	"rinkudesu-tags/Mocks"
 	"rinkudesu-tags/Models"
 	"testing"
 )
 
 func TestTagQueryExecutor_GetAll(t *testing.T) {
 	repo, executor, database, dbName := getRepository()
-	defer dropDatabase(database, dbName)
+	defer Mocks.DropDatabase(database, dbName)
 	newId, _ := uuid.NewV4()
 	insertResult, err := executor.Insert(&Models.Tag{
 		Name:   "this is a test",
@@ -40,31 +39,7 @@ func TestTagQueryExecutor_GetAll(t *testing.T) {
 }
 
 func getRepository() (*TagsRepository, TagQueryExecutable, *Data.DbConnector, string) {
-	database, name := getDatabase()
+	database, name := Mocks.GetDatabase()
 	executor := NewTagQueryExecutor(&database)
 	return NewTagsRepository(executor), executor, &database, name
-}
-
-func getDatabase() (Data.DbConnector, string) {
-	database := &Data.DbConnection{}
-	dbName, _ := uuid.NewV4()
-	err := database.Initialise("postgres://postgres:postgres@localhost:5432/" + dbName.String())
-	if err != nil {
-		_ = database.Initialise("postgres://postgres:postgres@localhost:5432/postgres")
-		_, _ = database.Exec(fmt.Sprintf("create database \"%s\"", dbName.String()))
-		database.Close()
-		database = &Data.DbConnection{}
-		_ = database.Initialise("postgres://postgres:postgres@localhost:5432/" + dbName.String())
-	}
-	executor := Migrations.NewExecutor(database)
-	executor.Migrate()
-	return database, dbName.String()
-}
-
-func dropDatabase(existingConnection *Data.DbConnector, dbName string) {
-	(*existingConnection).Close()
-	database := &Data.DbConnection{}
-	defer database.Close()
-	_ = database.Initialise("postgres://postgres:postgres@localhost:5432/postgres")
-	_, _ = database.Exec(fmt.Sprintf("drop database \"%s\"", dbName))
 }
