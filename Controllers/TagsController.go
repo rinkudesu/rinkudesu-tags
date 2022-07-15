@@ -38,11 +38,11 @@ func (controller *TagsController) GetTag(w http.ResponseWriter, id string) {
 	}
 	tag, err := controller.repository.GetTag(tagUuid)
 	if err != nil {
+		if err == Repositories.NotFoundErr {
+			NotFound(w)
+			return
+		}
 		InternalServerError(w)
-		return
-	}
-	if tag == nil {
-		NotFound(w)
 		return
 	}
 
@@ -92,11 +92,11 @@ func (controller *TagsController) UpdateTag(w http.ResponseWriter, tagBody io.Re
 
 	returnedTag, err := controller.repository.Update(&tag)
 	if err != nil {
+		if err == Repositories.NotFoundErr {
+			NotFound(w)
+			return
+		}
 		BadRequest(w)
-		return
-	}
-	if returnedTag == nil {
-		NotFound(w)
 		return
 	}
 
@@ -112,6 +112,10 @@ func (controller *TagsController) DeleteTag(w http.ResponseWriter, id string) {
 
 	err = controller.repository.Delete(uuidValue)
 	if err != nil {
+		if err == Repositories.NotFoundErr {
+			NotFound(w)
+			return
+		}
 		BadRequest(w)
 		return
 	}
