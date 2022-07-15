@@ -106,6 +106,7 @@ func TestTagsRepository_Update_TagExists(t *testing.T) {
 	tag.Name = "new name"
 
 	result, err := repo.Update(&tag)
+
 	assert.Nil(t, err)
 	assert.Equal(t, &tag, result)
 	loadedTag, _ := repo.GetTag(tag.Id)
@@ -123,6 +124,7 @@ func TestTagsRepository_Update_NameAlreadyExists(t *testing.T) {
 	tag.Name = "new name"
 
 	result, err := repo.Update(&tag)
+
 	assert.NotNil(t, err)
 	assert.Equal(t, AlreadyExistsErr, err)
 	assert.Nil(t, result)

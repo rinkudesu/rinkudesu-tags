@@ -2,7 +2,6 @@ package Repositories
 
 import (
 	"github.com/gofrs/uuid"
-	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Models"
 )
 
@@ -42,7 +41,7 @@ func (repository *TagsRepository) GetTag(id uuid.UUID) (*Models.Tag, error) {
 	}
 	tag, err := repository.executor.ScanIntoTag(row, id)
 	if err != nil {
-		if Data.IsPostgresNotFoundError(err) {
+		if IsPostgresNotFoundError(err) {
 			return nil, NotFoundErr
 		}
 	}
@@ -57,7 +56,7 @@ func (repository *TagsRepository) Create(tag *Models.Tag) (*Models.Tag, error) {
 	var newId uuid.UUID
 	err = result.Scan(&newId)
 	if err != nil {
-		if Data.IsPostgresDuplicateValue(err) {
+		if IsPostgresDuplicateValue(err) {
 			return nil, AlreadyExistsErr
 		}
 		return nil, err
@@ -69,7 +68,7 @@ func (repository *TagsRepository) Create(tag *Models.Tag) (*Models.Tag, error) {
 func (repository *TagsRepository) Update(tag *Models.Tag) (*Models.Tag, error) {
 	result, err := repository.executor.Update(tag)
 	if err != nil {
-		if Data.IsPostgresDuplicateValue(err) {
+		if IsPostgresDuplicateValue(err) {
 			return nil, AlreadyExistsErr
 		}
 		return nil, err

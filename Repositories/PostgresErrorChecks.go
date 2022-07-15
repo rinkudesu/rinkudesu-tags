@@ -1,4 +1,4 @@
-package Data
+package Repositories
 
 import (
 	"errors"
