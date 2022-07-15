@@ -1,9 +1,8 @@
 package Repositories
 
 import (
-	"errors"
 	"github.com/gofrs/uuid"
-	"github.com/jackc/pgx/v4"
+	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Models"
 )
 
@@ -15,13 +14,13 @@ func NewTagsRepository(executor TagQueryExecutable) *TagsRepository {
 	return &TagsRepository{executor: executor}
 }
 
-func (repository *TagsRepository) GetTags() ([]Models.Tag, error) {
+func (repository *TagsRepository) GetTags() ([]*Models.Tag, error) {
 	rows, err := repository.executor.GetAll()
 	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
-	tags := make([]Models.Tag, 0)
+	tags := make([]*Models.Tag, 0)
 	for rows.Next() {
 		var id uuid.UUID
 		var name string
@@ -29,9 +28,9 @@ func (repository *TagsRepository) GetTags() ([]Models.Tag, error) {
 
 		scanErr := rows.Scan(&id, &name, &userId)
 		if scanErr != nil {
-			return nil, errors.New("failed to scan tag from database")
+			return nil, scanErr
 		}
-		tags = append(tags, Models.Tag{Id: id, Name: name, UserId: userId})
+		tags = append(tags, &Models.Tag{Id: id, Name: name, UserId: userId})
 	}
 	return tags, nil
 }
@@ -43,8 +42,8 @@ func (repository *TagsRepository) GetTag(id uuid.UUID) (*Models.Tag, error) {
 	}
 	tag, err := repository.executor.ScanIntoTag(row, id)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, nil
+		if Data.IsPostgresNotFoundError(err) {
+			return nil, NotFoundErr
 		}
 	}
 	return tag, nil
@@ -58,7 +57,10 @@ func (repository *TagsRepository) Create(tag *Models.Tag) (*Models.Tag, error) {
 	var newId uuid.UUID
 	err = result.Scan(&newId)
 	if err != nil {
-		return nil, err //todo: figure out what to do when name/user is duplicated
+		if Data.IsPostgresDuplicateValue(err) {
+			return nil, AlreadyExistsErr
+		}
+		return nil, err
 	}
 	tag.Id = newId
 	return tag, nil
@@ -66,16 +68,22 @@ func (repository *TagsRepository) Create(tag *Models.Tag) (*Models.Tag, error) {
 
 func (repository *TagsRepository) Update(tag *Models.Tag) (*Models.Tag, error) {
 	result, err := repository.executor.Update(tag)
-	//todo: figure out what to do when name duplicated
 	if err != nil {
+		if Data.IsPostgresDuplicateValue(err) {
+			return nil, AlreadyExistsErr
+		}
 		return nil, err
 	}
 	if result.RowsAffected() <= 0 {
-		return nil, nil
+		return nil, NotFoundErr
 	}
 	return tag, nil
 }
 
 func (repository *TagsRepository) Delete(id uuid.UUID) error {
-	return repository.executor.Delete(id)
+	result, err := repository.executor.Delete(id)
+	if result.RowsAffected() <= 0 {
+		return NotFoundErr
+	}
+	return err
 }
