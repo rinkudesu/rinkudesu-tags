@@ -17,6 +17,7 @@ func NewTagsRepository(executor TagQueryExecutable) *TagsRepository {
 
 func (repository *TagsRepository) GetTags() ([]Models.Tag, error) {
 	rows, err := repository.executor.GetAll()
+	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
