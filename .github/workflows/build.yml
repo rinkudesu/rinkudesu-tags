@@ -17,17 +17,24 @@ jobs:
       - run: go build
   test:
     name: test
-    env:
-      TEST_POSTGRES: postgres://postgres@localhost:5432/
     runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
           go-version: '>=1.17.0'
-      - run: |
-          sudo systemctl start postgresql.service
-          pg_isready
       - run: go test ./...
   sonarcloud:
     name: SonarCloud
