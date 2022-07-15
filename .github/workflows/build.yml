@@ -26,7 +26,7 @@ jobs:
       - run: |
           sudo systemctl start postgresql.service
           pg_isready
-      - run: go test
+      - run: go test ./...
   sonarcloud:
     name: SonarCloud
     runs-on: ubuntu-latest
