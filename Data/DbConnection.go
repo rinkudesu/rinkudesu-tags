@@ -10,21 +10,18 @@ import (
 	"os"
 )
 
-var (
+type DbConnection struct {
 	pool   *pgxpool.Pool
 	closed bool
-)
-
-type DbConnection struct {
 }
 
-func (connection DbConnection) InitialiseEnv() error {
+func (connection *DbConnection) InitialiseEnv() error {
 	connectionString := os.Getenv("RINKU_TAGS_CONNECTIONSTRING")
 	return connection.Initialise(connectionString)
 }
 
-func (connection DbConnection) Initialise(connectionString string) error {
-	if pool != nil {
+func (connection *DbConnection) Initialise(connectionString string) error {
+	if connection.pool != nil {
 		return alreadyInitialisedError{}
 	}
 
@@ -48,53 +45,55 @@ func (connection DbConnection) Initialise(connectionString string) error {
 		return err
 	}
 
-	pool = localPool
+	connection.pool = localPool
+	connection.closed = false
 	return nil
 }
 
-func (connection DbConnection) QueryRow(sql string, args ...interface{}) (Row, error) {
+func (connection *DbConnection) QueryRow(sql string, args ...interface{}) (Row, error) {
 	if openErr := connection.ensureOpen(); openErr != nil {
 		return nil, openErr
 	}
 
-	return pool.QueryRow(context.Background(), sql, args...), nil
+	return connection.pool.QueryRow(context.Background(), sql, args...), nil
 }
 
-func (connection DbConnection) QueryRows(sql string, args ...interface{}) (Rows, error) {
+func (connection *DbConnection) QueryRows(sql string, args ...interface{}) (Rows, error) {
 	if openErr := connection.ensureOpen(); openErr != nil {
 		return nil, openErr
 	}
 
-	return pool.Query(context.Background(), sql, args...)
+	return connection.pool.Query(context.Background(), sql, args...)
 }
 
-func (connection DbConnection) Query(sql string) (Rows, error) {
+func (connection *DbConnection) Query(sql string) (Rows, error) {
 	if openErr := connection.ensureOpen(); openErr != nil {
 		return nil, openErr
 	}
 
-	return pool.Query(context.Background(), sql)
+	return connection.pool.Query(context.Background(), sql)
 }
 
-func (connection DbConnection) Exec(sql string, args ...interface{}) (ExecResult, error) {
+func (connection *DbConnection) Exec(sql string, args ...interface{}) (ExecResult, error) {
 	if openErr := connection.ensureOpen(); openErr != nil {
 		return nil, openErr
 	}
 
-	return pool.Exec(context.Background(), sql, args...)
+	return connection.pool.Exec(context.Background(), sql, args...)
 }
 
-func (connection DbConnection) Close() {
-	if closed {
+func (connection *DbConnection) Close() {
+	if connection.closed {
 		return
 	}
 
-	pool.Close()
-	closed = true
+	connection.pool.Close()
+	connection.pool = nil
+	connection.closed = true
 }
 
-func (connection DbConnection) ensureOpen() error {
-	if closed || pool == nil {
+func (connection *DbConnection) ensureOpen() error {
+	if connection.closed || connection.pool == nil {
 		return connectionClosedError{}
 	}
 	return nil

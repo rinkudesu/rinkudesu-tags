@@ -10,8 +10,8 @@ type TagQueryExecutor struct {
 	connection Data.DbConnector
 }
 
-func NewTagQueryExecutor(connection Data.DbConnector) *TagQueryExecutor {
-	return &TagQueryExecutor{connection: connection}
+func NewTagQueryExecutor(connection *Data.DbConnector) *TagQueryExecutor {
+	return &TagQueryExecutor{connection: *connection}
 }
 
 func (executor TagQueryExecutor) GetAll() (Data.Rows, error) {
