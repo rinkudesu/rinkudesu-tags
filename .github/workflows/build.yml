@@ -18,7 +18,7 @@ jobs:
   test:
     name: test
     env:
-      TEST_POSTGRES: "postgres://postgres@localhost:5432/"
+      TEST_POSTGRES: postgres://postgres@localhost:5432/
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
