@@ -11,13 +11,20 @@ import (
 
 const path = "tags"
 
-var (
-	database Data.DbConnector
-)
+type TagsRouter struct {
+	connection Data.DbConnector
+}
 
-func handleTags(w http.ResponseWriter, r *http.Request) {
+func NewTagsRouter(connection Data.DbConnector, basePath string) *TagsRouter {
+	router := TagsRouter{connection: connection}
+	tagHandler := http.HandlerFunc(router.handleTags)
+	http.Handle(fmt.Sprintf("%s/v1/%s", basePath, path), tagHandler)
+	return &router
+}
+
+func (router *TagsRouter) handleTags(w http.ResponseWriter, r *http.Request) {
 	log.Infof("Got %s request to %s", r.Method, r.URL)
-	controller := getController()
+	controller := router.getController()
 	switch r.Method {
 	case http.MethodGet:
 		{
@@ -51,18 +58,9 @@ func handleTags(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func SetupTagsRoutes(basePath string) {
-	tagHandler := http.HandlerFunc(handleTags)
-	http.Handle(fmt.Sprintf("%s/v1/%s", basePath, path), tagHandler)
-}
-
-func SetupTagsDatabase(initDatabase Data.DbConnector) {
-	database = initDatabase
-}
-
 //todo: this is so bad...
-func getController() Controllers.TagsController {
-	var repository = Repositories.NewTagsRepository(Repositories.NewTagQueryExecutor(&database))
+func (router *TagsRouter) getController() Controllers.TagsController {
+	var repository = Repositories.NewTagsRepository(Repositories.NewTagQueryExecutor(router.connection))
 	var controller = Controllers.NewTagsController(*repository)
 	return *controller
 }

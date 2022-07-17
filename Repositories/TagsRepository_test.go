@@ -18,7 +18,7 @@ type tagsRepositoryTests struct {
 
 func newTagsRepositoryTests() *tagsRepositoryTests {
 	database, name := Mocks.GetDatabase()
-	executor := NewTagQueryExecutor(&database)
+	executor := NewTagQueryExecutor(database)
 	return &tagsRepositoryTests{
 		repo:     NewTagsRepository(executor),
 		executor: executor,

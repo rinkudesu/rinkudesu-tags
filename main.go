@@ -12,6 +12,10 @@ import (
 //todo: base path and port should be configurable
 const basePath = "/api"
 
+var (
+	tagsRouter *Routers.TagsRouter
+)
+
 func init() {
 	log.SetFormatter(&log.TextFormatter{FullTimestamp: true, DisableColors: true})
 	log.SetOutput(os.Stdout)
@@ -22,7 +26,7 @@ func main() {
 	var connection = Data.DbConnection{}
 	_ = connection.Initialise("postgres://postgres:postgres@localhost:5432/postgres")
 	defer connection.Close()
-	migrate(connection)
+	migrate(&connection)
 
 	setupRoutes(&connection)
 
@@ -32,12 +36,11 @@ func main() {
 	}
 }
 
-func migrate(connection Data.DbConnection) {
-	migrator := Migrations.NewExecutor(&connection)
+func migrate(connection Data.DbConnector) {
+	migrator := Migrations.NewExecutor(connection)
 	migrator.Migrate()
 }
 
 func setupRoutes(connection Data.DbConnector) {
-	Routers.SetupTagsRoutes(basePath)
-	Routers.SetupTagsDatabase(connection)
+	tagsRouter = Routers.NewTagsRouter(connection, basePath)
 }
