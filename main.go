@@ -1,8 +1,9 @@
 ﻿package main
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
+	"os"
 	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Data/Migrations"
 	"rinkudesu-tags/Routers"
@@ -10,6 +11,12 @@ import (
 
 //todo: base path and port should be configurable
 const basePath = "/api"
+
+func init() {
+	log.SetFormatter(&log.TextFormatter{FullTimestamp: true, DisableColors: true})
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.InfoLevel) //todo: this should be configurable
+}
 
 func main() {
 	var connection = Data.DbConnection{}
@@ -21,7 +28,7 @@ func main() {
 
 	err := http.ListenAndServe(":5000", nil) //todo: this nil should probably be *something*
 	if err != nil {
-		log.Panicln("Unable to listen on port 5000")
+		log.Panic("Unable to listen on port 5000")
 	}
 }
 
