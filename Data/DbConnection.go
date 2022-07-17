@@ -2,12 +2,18 @@
 
 import (
 	"context"
+	"errors"
 	"github.com/jackc/pgtype"
 	pgtypeuuid "github.com/jackc/pgtype/ext/gofrs-uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"os"
+)
+
+var (
+	ConnectionClosedError   = errors.New("this connection to the database has already been closed")
+	AlreadyInitialisedError = errors.New("this connection to the database has already been initialised")
 )
 
 type DbConnection struct {
@@ -22,12 +28,12 @@ func (connection *DbConnection) InitialiseEnv() error {
 
 func (connection *DbConnection) Initialise(connectionString string) error {
 	if connection.pool != nil {
-		return alreadyInitialisedError{}
+		return AlreadyInitialisedError
 	}
 
 	config, err := pgxpool.ParseConfig(connectionString)
 	if err != nil {
-		log.Panicln("Unable to create database connection config")
+		log.Panicf("Unable to create database connection config: %s", err.Error())
 	}
 
 	config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
@@ -41,7 +47,7 @@ func (connection *DbConnection) Initialise(connectionString string) error {
 
 	localPool, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
-		log.Println(err)
+		log.Errorf("Failed to connect to database: %s", err.Error())
 		return err
 	}
 
@@ -87,6 +93,7 @@ func (connection *DbConnection) Close() {
 		return
 	}
 
+	log.Info("Closing database connection")
 	connection.pool.Close()
 	connection.pool = nil
 	connection.closed = true
@@ -94,21 +101,7 @@ func (connection *DbConnection) Close() {
 
 func (connection *DbConnection) ensureOpen() error {
 	if connection.closed || connection.pool == nil {
-		return connectionClosedError{}
+		return ConnectionClosedError
 	}
 	return nil
-}
-
-type connectionClosedError struct {
-}
-
-func (err connectionClosedError) Error() string {
-	return "This connection to the database has been already closed"
-}
-
-type alreadyInitialisedError struct {
-}
-
-func (err alreadyInitialisedError) Error() string {
-	return "This connection to the database has been already initialised"
 }

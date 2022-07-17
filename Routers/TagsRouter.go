@@ -2,6 +2,7 @@ package Routers
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"rinkudesu-tags/Controllers"
 	"rinkudesu-tags/Data"
@@ -15,6 +16,7 @@ var (
 )
 
 func handleTags(w http.ResponseWriter, r *http.Request) {
+	log.Infof("Got %s request to %s", r.Method, r.URL)
 	controller := getController()
 	switch r.Method {
 	case http.MethodGet:
