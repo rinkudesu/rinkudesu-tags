@@ -9,13 +9,12 @@ import (
 	"rinkudesu-tags/Repositories"
 )
 
-const path = "tags"
-
 type TagsRouter struct {
 	connection Data.DbConnector
 }
 
 func NewTagsRouter(connection Data.DbConnector, basePath string) *TagsRouter {
+	const path = "tags"
 	router := TagsRouter{connection: connection}
 	tagHandler := http.HandlerFunc(router.handleTags)
 	http.Handle(fmt.Sprintf("%s/v1/%s", basePath, path), tagHandler)
