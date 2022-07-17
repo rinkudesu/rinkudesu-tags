@@ -27,7 +27,7 @@ func (controller *TagsController) GetTags(w http.ResponseWriter) {
 		return
 	}
 
-	writeJsonResponse(w, 200, tags)
+	WriteJsonResponse(w, 200, tags)
 	return
 }
 
@@ -48,19 +48,19 @@ func (controller *TagsController) GetTag(w http.ResponseWriter, id string) {
 		return
 	}
 
-	writeJsonResponse(w, 200, *tag)
+	WriteJsonResponse(w, 200, *tag)
 	return
 }
 
 func (controller *TagsController) CreateTag(w http.ResponseWriter, tagBody io.ReadCloser) {
-	defer closeBody(tagBody)
-	body, err := readBody(tagBody)
+	defer CloseBody(tagBody)
+	body, err := ReadBody(tagBody)
 	if err != nil {
 		BadRequest(w)
 		return
 	}
 	var tag Models.Tag
-	err = parseJson(body, &tag)
+	err = controller.parseJson(body, &tag)
 	if err != nil {
 		BadRequest(w)
 		return
@@ -75,19 +75,19 @@ func (controller *TagsController) CreateTag(w http.ResponseWriter, tagBody io.Re
 		BadRequest(w)
 		return
 	}
-	writeJsonResponse(w, 201, returnedTag)
+	WriteJsonResponse(w, 201, returnedTag)
 }
 
 func (controller *TagsController) UpdateTag(w http.ResponseWriter, tagBody io.ReadCloser) {
-	defer closeBody(tagBody)
+	defer CloseBody(tagBody)
 
-	body, err := readBody(tagBody)
+	body, err := ReadBody(tagBody)
 	if err != nil {
 		BadRequest(w)
 		return
 	}
 	var tag Models.Tag
-	err = parseJson(body, &tag)
+	err = controller.parseJson(body, &tag)
 	if err != nil {
 		BadRequest(w)
 		return
@@ -103,7 +103,7 @@ func (controller *TagsController) UpdateTag(w http.ResponseWriter, tagBody io.Re
 		return
 	}
 
-	writeJsonResponse(w, 200, returnedTag)
+	WriteJsonResponse(w, 200, returnedTag)
 }
 
 func (controller *TagsController) DeleteTag(w http.ResponseWriter, id string) {
@@ -126,7 +126,7 @@ func (controller *TagsController) DeleteTag(w http.ResponseWriter, id string) {
 	Ok(w)
 }
 
-func parseJson(json []byte, tag *Models.Tag) error {
+func (controller TagsController) parseJson(json []byte, tag *Models.Tag) error {
 	err := json2.Unmarshal(json, tag)
 	if err != nil {
 		log.Warningf("Failed to parse tag json: %s", err.Error())
@@ -134,33 +134,3 @@ func parseJson(json []byte, tag *Models.Tag) error {
 	return err
 }
 
-func readBody(body io.ReadCloser) ([]byte, error) {
-	array, err := io.ReadAll(body)
-	if err != nil {
-		log.Warningf("Failed to read from body %s", err.Error())
-	}
-	return array, err
-}
-
-func closeBody(body io.ReadCloser) {
-	err := body.Close()
-	if err != nil {
-		log.Warningf("Failed to close request body: %s", err.Error())
-	}
-}
-
-func writeJsonResponse(w http.ResponseWriter, code int, tags interface{}) {
-	json, jsonErr := json2.Marshal(tags)
-	if jsonErr != nil {
-		log.Warningf("Failed to serialise to json: %s", jsonErr.Error())
-		InternalServerError(w)
-		return
-	}
-	w.WriteHeader(code)
-	_, err := w.Write(json)
-	if err != nil {
-		log.Warningf("Failed to write response: %s", err.Error())
-		InternalServerError(w)
-		return
-	}
-}
