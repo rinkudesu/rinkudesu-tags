@@ -9,18 +9,36 @@ import (
 	"testing"
 )
 
+type tagsRepositoryTests struct {
+	repo     *TagsRepository
+	executor TagQueryExecutable
+	database *Data.DbConnector
+	dbName   string
+}
+
+func newTagsRepositoryTests() *tagsRepositoryTests {
+	database, name := Mocks.GetDatabase()
+	executor := NewTagQueryExecutor(&database)
+	return &tagsRepositoryTests{
+		repo:     NewTagsRepository(executor),
+		executor: executor,
+		database: &database,
+		dbName:   name,
+	}
+}
+
 func TestTagQueryExecutor_GetAll_TagsPresent(t *testing.T) {
-	repo, executor, database, dbName := getRepository()
-	defer Mocks.DropDatabase(database, dbName)
+	test := newTagsRepositoryTests()
+	defer Mocks.DropDatabase(test.database, test.dbName)
 	userId, _ := uuid.NewV4()
 	tags := []*Models.Tag{
 		{Name: "tag 1", UserId: userId},
 		{Name: "tag 2", UserId: userId},
 		{Name: "tag 3", UserId: userId},
 	}
-	tagIds := addTags(executor, t, tags)
+	tagIds := addTags(test.executor, t, tags)
 
-	result, err := repo.GetTags()
+	result, err := test.repo.GetTags()
 
 	assert.Nil(t, err)
 	assert.Equal(t, 3, len(result))
@@ -31,10 +49,10 @@ func TestTagQueryExecutor_GetAll_TagsPresent(t *testing.T) {
 }
 
 func TestTagQueryExecutor_GetAll_NoTagsReturnsEmpty(t *testing.T) {
-	repo, _, database, dbName := getRepository()
-	defer Mocks.DropDatabase(database, dbName)
+	test := newTagsRepositoryTests()
+	defer Mocks.DropDatabase(test.database, test.dbName)
 
-	result, err := repo.GetTags()
+	result, err := test.repo.GetTags()
 
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
@@ -42,13 +60,13 @@ func TestTagQueryExecutor_GetAll_NoTagsReturnsEmpty(t *testing.T) {
 }
 
 func TestTagsRepository_GetTag_Found(t *testing.T) {
-	repo, executor, database, dbName := getRepository()
-	defer Mocks.DropDatabase(database, dbName)
+	test := newTagsRepositoryTests()
+	defer Mocks.DropDatabase(test.database, test.dbName)
 	userId, _ := uuid.NewV4()
 	tag := Models.Tag{Name: "test", UserId: userId}
-	tagId := addTag(executor, t, &tag)
+	tagId := addTag(test.executor, t, &tag)
 
-	result, err := repo.GetTag(tagId)
+	result, err := test.repo.GetTag(tagId)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
@@ -58,23 +76,23 @@ func TestTagsRepository_GetTag_Found(t *testing.T) {
 }
 
 func TestTagsRepository_GetTag_NotFound(t *testing.T) {
-	repo, _, database, dbName := getRepository()
-	defer Mocks.DropDatabase(database, dbName)
+	test := newTagsRepositoryTests()
+	defer Mocks.DropDatabase(test.database, test.dbName)
 	id, _ := uuid.NewV4()
 
-	result, err := repo.GetTag(id)
+	result, err := test.repo.GetTag(id)
 	assert.NotNil(t, err)
 	assert.Equal(t, NotFoundErr, err)
 	assert.Nil(t, result)
 }
 
 func TestTagsRepository_Create_Creates(t *testing.T) {
-	repo, _, database, dbName := getRepository()
-	defer Mocks.DropDatabase(database, dbName)
+	test := newTagsRepositoryTests()
+	defer Mocks.DropDatabase(test.database, test.dbName)
 	userId, _ := uuid.NewV4()
 	tag := Models.Tag{Name: "test", UserId: userId}
 
-	result, err := repo.Create(&tag)
+	result, err := test.repo.Create(&tag)
 
 	assert.Nil(t, err)
 	assert.Equal(t, &tag, result)
@@ -82,94 +100,94 @@ func TestTagsRepository_Create_Creates(t *testing.T) {
 }
 
 func TestTagsRepository_Create_DuplicateName(t *testing.T) {
-	repo, _, database, dbName := getRepository()
-	defer Mocks.DropDatabase(database, dbName)
+	test := newTagsRepositoryTests()
+	defer Mocks.DropDatabase(test.database, test.dbName)
 	userId, _ := uuid.NewV4()
 	tag := Models.Tag{Name: "test", UserId: userId}
-	_, _ = repo.Create(&tag)
+	_, _ = test.repo.Create(&tag)
 
-	result, err := repo.Create(&tag)
+	result, err := test.repo.Create(&tag)
 
 	assert.Nil(t, result)
 	assert.NotNil(t, err)
 	assert.Equal(t, AlreadyExistsErr, err)
-	tags, _ := repo.GetTags()
+	tags, _ := test.repo.GetTags()
 	assert.Equal(t, 1, len(tags))
 }
 
 func TestTagsRepository_Update_TagExists(t *testing.T) {
-	repo, _, database, dbName := getRepository()
-	defer Mocks.DropDatabase(database, dbName)
+	test := newTagsRepositoryTests()
+	defer Mocks.DropDatabase(test.database, test.dbName)
 	userId, _ := uuid.NewV4()
 	tag := Models.Tag{Name: "test", UserId: userId}
-	_, _ = repo.Create(&tag)
+	_, _ = test.repo.Create(&tag)
 	tag.Name = "new name"
 
-	result, err := repo.Update(&tag)
+	result, err := test.repo.Update(&tag)
 
 	assert.Nil(t, err)
 	assert.Equal(t, &tag, result)
-	loadedTag, _ := repo.GetTag(tag.Id)
+	loadedTag, _ := test.repo.GetTag(tag.Id)
 	assert.Equal(t, "new name", loadedTag.Name)
 }
 
 func TestTagsRepository_Update_NameAlreadyExists(t *testing.T) {
-	repo, _, database, dbName := getRepository()
-	defer Mocks.DropDatabase(database, dbName)
+	test := newTagsRepositoryTests()
+	defer Mocks.DropDatabase(test.database, test.dbName)
 	userId, _ := uuid.NewV4()
 	tag := Models.Tag{Name: "test", UserId: userId}
 	tag2 := Models.Tag{Name: "new name", UserId: userId}
-	_, _ = repo.Create(&tag)
-	_, _ = repo.Create(&tag2)
+	_, _ = test.repo.Create(&tag)
+	_, _ = test.repo.Create(&tag2)
 	tag.Name = "new name"
 
-	result, err := repo.Update(&tag)
+	result, err := test.repo.Update(&tag)
 
 	assert.NotNil(t, err)
 	assert.Equal(t, AlreadyExistsErr, err)
 	assert.Nil(t, result)
-	loadedTag, _ := repo.GetTag(tag.Id)
+	loadedTag, _ := test.repo.GetTag(tag.Id)
 	assert.Equal(t, "test", loadedTag.Name)
 }
 
 func TestTagsRepository_Update_TagNotFound(t *testing.T) {
-	repo, _, database, dbName := getRepository()
-	defer Mocks.DropDatabase(database, dbName)
+	test := newTagsRepositoryTests()
+	defer Mocks.DropDatabase(test.database, test.dbName)
 	userId, _ := uuid.NewV4()
 	tag := Models.Tag{Name: "test", UserId: userId}
 
-	result, err := repo.Update(&tag)
+	result, err := test.repo.Update(&tag)
 	assert.NotNil(t, err)
 	assert.Equal(t, NotFoundErr, err)
 	assert.Nil(t, result)
-	loadedTags, _ := repo.GetTags()
+	loadedTags, _ := test.repo.GetTags()
 	assert.Empty(t, loadedTags)
 }
 
 func TestTagsRepository_Delete_Deletes(t *testing.T) {
-	repo, _, database, dbName := getRepository()
-	defer Mocks.DropDatabase(database, dbName)
+	test := newTagsRepositoryTests()
+	defer Mocks.DropDatabase(test.database, test.dbName)
 	userId, _ := uuid.NewV4()
 	tag := Models.Tag{Name: "test", UserId: userId}
-	_, _ = repo.Create(&tag)
+	_, _ = test.repo.Create(&tag)
 
-	err := repo.Delete(tag.Id)
+	err := test.repo.Delete(tag.Id)
 
 	assert.Nil(t, err)
-	tags, _ := repo.GetTags()
+	tags, _ := test.repo.GetTags()
 	assert.Empty(t, tags)
 }
 
 func TestTagsRepository_Delete_NotFound(t *testing.T) {
-	repo, _, database, dbName := getRepository()
-	defer Mocks.DropDatabase(database, dbName)
+	test := newTagsRepositoryTests()
+	defer Mocks.DropDatabase(test.database, test.dbName)
 	userId, _ := uuid.NewV4()
 
-	err := repo.Delete(userId)
+	err := test.repo.Delete(userId)
 
 	assert.NotNil(t, err)
 	assert.Equal(t, NotFoundErr, err)
-	tags, _ := repo.GetTags()
+	tags, _ := test.repo.GetTags()
 	assert.Empty(t, tags)
 }
 
@@ -202,10 +220,4 @@ func addTags(executor TagQueryExecutable, t *testing.T, tags []*Models.Tag) []uu
 		ids[i] = insertedId
 	}
 	return ids
-}
-
-func getRepository() (*TagsRepository, TagQueryExecutable, *Data.DbConnector, string) {
-	database, name := Mocks.GetDatabase()
-	executor := NewTagQueryExecutor(&database)
-	return NewTagsRepository(executor), executor, &database, name
 }
