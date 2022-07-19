@@ -28,6 +28,11 @@ func NotFound(w http.ResponseWriter) {
 	w.WriteHeader(404)
 }
 
+func MethodNotAllowed(w http.ResponseWriter) {
+	log.Debug("Responding with METHOD NOT ALLOWED")
+	w.WriteHeader(405)
+}
+
 func ReadBody(body io.ReadCloser) ([]byte, error) {
 	array, err := io.ReadAll(body)
 	if err != nil {

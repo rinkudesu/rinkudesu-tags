@@ -53,6 +53,11 @@ func (router *TagsRouter) handleTags(w http.ResponseWriter, r *http.Request) {
 			Controllers.BadRequest(w)
 			break
 		}
+	default:
+		{
+			Controllers.MethodNotAllowed(w)
+			break
+		}
 	}
 
 }
