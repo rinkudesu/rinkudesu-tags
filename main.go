@@ -4,8 +4,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
+	"rinkudesu-tags/Controllers"
 	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Data/Migrations"
+	"rinkudesu-tags/Repositories"
 	"rinkudesu-tags/Routers"
 )
 
@@ -13,7 +15,8 @@ import (
 const basePath = "/api"
 
 var (
-	tagsRouter *Routers.TagsRouter
+	tagsRouter  *Routers.TagsRouter
+	linksRouter *Routers.LinksRouter
 )
 
 func init() {
@@ -43,4 +46,5 @@ func migrate(connection Data.DbConnector) {
 
 func setupRoutes(connection Data.DbConnector) {
 	tagsRouter = Routers.NewTagsRouter(connection, basePath)
+	linksRouter = Routers.NewLinksRouter(Controllers.NewLinksController(Repositories.NewLinksRepository(&connection)), basePath)
 }
