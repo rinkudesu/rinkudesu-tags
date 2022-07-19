@@ -15,5 +15,15 @@ func IsPostgresDuplicateValue(err error) bool {
 }
 
 func IsPostgresNotFoundError(err error) bool {
-	return err != nil && err == pgx.ErrNoRows
+	if err == nil {
+		return false
+	}
+	if err == pgx.ErrNoRows {
+		return true
+	}
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == "23503" {
+		return true
+	}
+	return false
 }
