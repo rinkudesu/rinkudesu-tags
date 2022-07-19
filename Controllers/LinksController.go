@@ -1,6 +1,8 @@
 package Controllers
 
 import (
+	json2 "encoding/json"
+	"io"
 	"net/http"
 	"rinkudesu-tags/Models"
 	"rinkudesu-tags/Repositories"
@@ -14,13 +16,19 @@ func NewLinksController(repository *Repositories.LinksRepository) *LinksControll
 	return &LinksController{repository: repository}
 }
 
-func (controller *LinksController) CreateLink(w http.ResponseWriter, id string) {
-	linkUuid, err := ParseUuid(id)
+func (controller *LinksController) CreateLink(w http.ResponseWriter, linkBody io.ReadCloser) {
+	defer CloseBody(linkBody)
+	linkBytes, err := ReadBody(linkBody)
+	if err != nil {
+		InternalServerError(w)
+		return
+	}
+	var link Models.Link
+	err = json2.Unmarshal(linkBytes, &link)
 	if err != nil {
 		BadRequest(w)
 		return
 	}
-	link := Models.Link{Id: linkUuid}
 	err = controller.repository.Create(&link)
 	if err != nil {
 		if err == Repositories.AlreadyExistsErr {
