@@ -15,8 +15,9 @@ import (
 const basePath = "/api"
 
 var (
-	tagsRouter  *Routers.TagsRouter
-	linksRouter *Routers.LinksRouter
+	tagsRouter     *Routers.TagsRouter
+	linksRouter    *Routers.LinksRouter
+	linkTagsRouter *Routers.LinkTagsRouter
 )
 
 func init() {
@@ -47,4 +48,5 @@ func migrate(connection Data.DbConnector) {
 func setupRoutes(connection Data.DbConnector) {
 	tagsRouter = Routers.NewTagsRouter(connection, basePath)
 	linksRouter = Routers.NewLinksRouter(Controllers.NewLinksController(Repositories.NewLinksRepository(&connection)), basePath)
+	linkTagsRouter = Routers.NewLinkTagsRouter(Controllers.NewLinkTagsController(Repositories.NewLinkTagsRepository(connection)), basePath)
 }
