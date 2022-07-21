@@ -24,7 +24,7 @@ func NewLinkTagsRouter(controller *Controllers.LinkTagsController, basePath stri
 }
 
 func (router *LinkTagsRouter) getLinksForTag(w http.ResponseWriter, r *http.Request) {
-	log.Infof("Got %s request to %s", r.Method, r.URL)
+	router.logRequest(r)
 	if r.Method != http.MethodGet {
 		Controllers.MethodNotAllowed(w)
 		return
@@ -38,7 +38,7 @@ func (router *LinkTagsRouter) getLinksForTag(w http.ResponseWriter, r *http.Requ
 }
 
 func (router *LinkTagsRouter) getTagsForLink(w http.ResponseWriter, r *http.Request) {
-	log.Infof("Got %s request to %s", r.Method, r.URL)
+	router.logRequest(r)
 	if r.Method != http.MethodGet {
 		Controllers.MethodNotAllowed(w)
 		return
@@ -52,7 +52,7 @@ func (router *LinkTagsRouter) getTagsForLink(w http.ResponseWriter, r *http.Requ
 }
 
 func (router *LinkTagsRouter) handleLinkTags(w http.ResponseWriter, r *http.Request) {
-	log.Infof("Got %s request to %s", r.Method, r.URL)
+	router.logRequest(r)
 	switch r.Method {
 	case http.MethodPost:
 		{
@@ -74,4 +74,8 @@ func (router *LinkTagsRouter) handleLinkTags(w http.ResponseWriter, r *http.Requ
 			break
 		}
 	}
+}
+
+func (router *LinkTagsRouter) logRequest(r *http.Request) {
+	log.Infof("Got %s request to %s", r.Method, r.URL)
 }
