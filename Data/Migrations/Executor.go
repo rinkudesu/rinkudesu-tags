@@ -80,6 +80,7 @@ func initialMigration(executor Executor) error {
 		"tag_id UUID NOT NULL REFERENCES tags(id) ON DELETE CASCADE);" +
 		"" +
 		"CREATE UNIQUE INDEX idx_tags_name_user on tags(name, user_id);" +
+		"CREATE UNIQUE INDEX idx_link_tags_ids on link_tags(link_id, tag_id);" +
 		"" +
 		"INSERT INTO migrations VALUES (0);\n" +
 		"" +
