@@ -2,7 +2,6 @@ package Controllers
 
 import (
 	json2 "encoding/json"
-	"github.com/gofrs/uuid"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -50,9 +49,8 @@ func (controller *LinkTagsController) Create(w http.ResponseWriter, linkTagBody 
 }
 
 func (controller *LinkTagsController) Delete(w http.ResponseWriter, stringId string) {
-	id, err := uuid.FromString(stringId)
+	id, err := ParseUuid(stringId)
 	if err != nil {
-		log.Infof("Failed to parse %s as uuid", stringId)
 		BadRequest(w)
 		return
 	}
@@ -71,9 +69,8 @@ func (controller *LinkTagsController) Delete(w http.ResponseWriter, stringId str
 }
 
 func (controller *LinkTagsController) GetLinksForTag(w http.ResponseWriter, stringId string) {
-	id, err := uuid.FromString(stringId)
+	id, err := ParseUuid(stringId)
 	if err != nil {
-		log.Infof("Failed to parse %s as uuid", stringId)
 		BadRequest(w)
 		return
 	}
@@ -92,9 +89,8 @@ func (controller *LinkTagsController) GetLinksForTag(w http.ResponseWriter, stri
 }
 
 func (controller *LinkTagsController) GetTagsForLink(w http.ResponseWriter, stringId string) {
-	id, err := uuid.FromString(stringId)
+	id, err := ParseUuid(stringId)
 	if err != nil {
-		log.Infof("Failed to parse %s as uuid", stringId)
 		BadRequest(w)
 		return
 	}
