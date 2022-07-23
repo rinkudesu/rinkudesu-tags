@@ -1,10 +1,8 @@
 package Controllers
 
 import (
-	json2 "encoding/json"
-	"github.com/gofrs/uuid"
+	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"io"
 	"net/http"
 	"rinkudesu-tags/Models"
 	"rinkudesu-tags/Repositories"
@@ -20,117 +18,107 @@ func NewTagsController(repository Repositories.TagsRepository) *TagsController {
 	return &TagsController{repository: repository}
 }
 
-func (controller *TagsController) GetTags(w http.ResponseWriter) {
+func (controller *TagsController) GetTags(c *gin.Context) {
 	tags, err := controller.repository.GetTags()
 	if err != nil {
-		InternalServerError(w)
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	WriteJsonResponse(w, 200, tags)
-	return
+	c.JSON(http.StatusOK, tags)
 }
 
-func (controller *TagsController) GetTag(w http.ResponseWriter, id string) {
-	tagUuid, err := uuid.FromString(id)
+func (controller *TagsController) GetTag(c *gin.Context) {
+	tagUuid, err := ParseUuidFromParam("id", c)
 	if err != nil {
-		log.Infof("Unable to parse '%s' as uuid", id)
-		BadRequest(w)
 		return
 	}
+
 	tag, err := controller.repository.GetTag(tagUuid)
 	if err != nil {
 		if err == Repositories.NotFoundErr {
-			NotFound(w)
-			return
+			c.Status(http.StatusNotFound)
+		} else {
+			c.Status(http.StatusInternalServerError)
 		}
-		InternalServerError(w)
 		return
 	}
 
-	WriteJsonResponse(w, 200, *tag)
-	return
+	c.JSON(http.StatusOK, tag)
 }
 
-func (controller *TagsController) CreateTag(w http.ResponseWriter, tagBody io.ReadCloser) {
-	defer CloseBody(tagBody)
-	body, err := ReadBody(tagBody)
-	if err != nil {
-		BadRequest(w)
-		return
-	}
+func (controller *TagsController) CreateTag(c *gin.Context) {
 	var tag Models.Tag
-	err = controller.parseJson(body, &tag)
+	err := BindJson(c, &tag)
 	if err != nil {
-		BadRequest(w)
 		return
 	}
+
 	if !tag.IsValid() {
 		log.Info("Log object is not valid")
-		BadRequest(w)
+		c.Status(http.StatusBadRequest)
 		return
 	}
+
 	returnedTag, err := controller.repository.Create(&tag)
 	if err != nil {
-		BadRequest(w)
+		c.Status(http.StatusBadRequest)
 		return
 	}
-	WriteJsonResponse(w, 201, returnedTag)
+	c.JSON(http.StatusCreated, returnedTag)
 }
 
-func (controller *TagsController) UpdateTag(w http.ResponseWriter, tagBody io.ReadCloser) {
-	defer CloseBody(tagBody)
-
-	body, err := ReadBody(tagBody)
+func (controller *TagsController) UpdateTag(c *gin.Context) {
+	var tag Models.Tag
+	err := BindJson(c, &tag)
 	if err != nil {
-		BadRequest(w)
 		return
 	}
-	var tag Models.Tag
-	err = controller.parseJson(body, &tag)
-	if err != nil {
-		BadRequest(w)
+
+	if !tag.IsValid() {
+		log.Info("Log object is not valid")
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
 	returnedTag, err := controller.repository.Update(&tag)
 	if err != nil {
 		if err == Repositories.NotFoundErr {
-			NotFound(w)
-			return
+			c.Status(http.StatusNotFound)
+		} else {
+			c.Status(http.StatusInternalServerError)
 		}
-		BadRequest(w)
 		return
 	}
 
-	WriteJsonResponse(w, 200, returnedTag)
+	c.JSON(http.StatusOK, returnedTag)
 }
 
-func (controller *TagsController) DeleteTag(w http.ResponseWriter, id string) {
-	uuidValue, err := uuid.FromString(id)
+func (controller *TagsController) DeleteTag(c *gin.Context) {
+	uuidValue, err := ParseUuidFromParam("id", c)
 	if err != nil {
-		log.Infof("Unable to parse '%s' as uuid", id)
-		BadRequest(w)
 		return
 	}
 
 	err = controller.repository.Delete(uuidValue)
 	if err != nil {
 		if err == Repositories.NotFoundErr {
-			NotFound(w)
-			return
+			c.Status(http.StatusNotFound)
+		} else {
+			c.Status(http.StatusInternalServerError)
 		}
-		BadRequest(w)
 		return
 	}
-	Ok(w)
+	c.Status(http.StatusOK)
 }
 
-func (controller TagsController) parseJson(json []byte, tag *Models.Tag) error {
-	err := json2.Unmarshal(json, tag)
-	if err != nil {
-		log.Warningf("Failed to parse tag json: %s", err.Error())
-	}
-	return err
-}
+func (controller *TagsController) SetupRoutes(engine *gin.Engine, basePath string) {
+	const apiVersion = "v0"
+	url := GetUrl(basePath, apiVersion, "tags")
 
+	engine.GET(url, controller.GetTags)
+	engine.GET(url+"/:id", controller.GetTag)
+	engine.POST(url, controller.CreateTag)
+	engine.PUT(url, controller.UpdateTag)
+	engine.DELETE(url+"/:id", controller.DeleteTag)
+}
