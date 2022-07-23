@@ -37,8 +37,8 @@ func (repo *LinkTagsRepository) Create(linkTag *Models.LinkTag) error {
 	return nil
 }
 
-func (repo *LinkTagsRepository) Remove(id uuid.UUID) error {
-	result, err := repo.connection.Exec("delete from link_tags where id = $1", id)
+func (repo *LinkTagsRepository) Remove(linkId uuid.UUID, tagId uuid.UUID) error {
+	result, err := repo.connection.Exec("delete from link_tags where link_id = $1 and tag_id = $2", linkId, tagId)
 	if err != nil {
 		log.Warningf("Failed to delete link tag: %s", err.Error())
 		return err

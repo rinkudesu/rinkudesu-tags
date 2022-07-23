@@ -39,12 +39,16 @@ func (controller *LinkTagsController) Create(c *gin.Context) {
 }
 
 func (controller *LinkTagsController) Delete(c *gin.Context) {
-	id, err := ParseUuidFromParam("id", c)
+	linkId, err := ParseUuidFromQuery("linkId", c)
+	if err != nil {
+		return
+	}
+	tagId, err := ParseUuidFromQuery("tagId", c)
 	if err != nil {
 		return
 	}
 
-	err = controller.repository.Remove(id)
+	err = controller.repository.Remove(linkId, tagId)
 	if err != nil {
 		if err == Repositories.NotFoundErr {
 			c.Status(http.StatusNotFound)
@@ -100,7 +104,7 @@ func (controller *LinkTagsController) SetupRoutes(engine *gin.Engine, basePath s
 	url := GetUrl(basePath, apiVersion, "linkTags")
 
 	engine.POST(url, controller.Create)
-	engine.DELETE(url+"/:id", controller.Delete)
+	engine.DELETE(url, controller.Delete)
 	engine.GET(fmt.Sprintf("%s/getLinksForTag/:id", url), controller.GetLinksForTag)
 	engine.GET(fmt.Sprintf("%s/getTagsForLink/:id", url), controller.GetTagsForLink)
 }

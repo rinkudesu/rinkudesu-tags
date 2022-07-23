@@ -143,7 +143,7 @@ func TestLinkTagsRepository_Remove_NotFound(t *testing.T) {
 	defer test.close()
 	id, _ := uuid.NewV4()
 
-	result := test.repo.Remove(id)
+	result := test.repo.Remove(id, id)
 
 	assert.NotNil(t, result)
 	assert.Equal(t, NotFoundErr, result)
@@ -163,7 +163,7 @@ func TestLinkTagsRepository_Remove_FoundAndRemoved(t *testing.T) {
 	linkTag := Models.LinkTag{LinkId: link.Id, TagId: tag.Id}
 	_ = test.repo.Create(&linkTag)
 
-	result := test.repo.Remove(linkTag.Id)
+	result := test.repo.Remove(link.Id, tag.Id)
 
 	assert.Nil(t, result)
 	linkTagRows, _ := test.connection.QueryRows("select * from link_tags")
