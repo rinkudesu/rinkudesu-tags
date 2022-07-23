@@ -20,7 +20,7 @@ func newTagsRepositoryTests() *tagsRepositoryTests {
 	database, name := Mocks.GetDatabase()
 	executor := NewTagQueryExecutor(database)
 	return &tagsRepositoryTests{
-		repo:     NewTagsRepository(executor),
+		repo:     CreateTagsRepository(database),
 		executor: executor,
 		database: &database,
 		dbName:   name,

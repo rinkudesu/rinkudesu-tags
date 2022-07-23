@@ -20,7 +20,7 @@ func newLinksRepositoryTests() *linksRepositoryTests {
 	return &linksRepositoryTests{
 		connection: &database,
 		dbName:     name,
-		repo:       NewLinksRepository(&database),
+		repo:       CreateLinksRepository(database),
 	}
 }
 

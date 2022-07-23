@@ -11,10 +11,10 @@ import (
 //todo: look into some sort of DI
 
 type TagsController struct {
-	repository Repositories.TagsRepository
+	repository *Repositories.TagsRepository
 }
 
-func NewTagsController(repository Repositories.TagsRepository) *TagsController {
+func NewTagsController(repository *Repositories.TagsRepository) *TagsController {
 	return &TagsController{repository: repository}
 }
 
