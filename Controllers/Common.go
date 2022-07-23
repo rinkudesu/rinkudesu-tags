@@ -22,7 +22,16 @@ func BindJson(c *gin.Context, obj any) error {
 }
 
 func ParseUuidFromParam(paramName string, c *gin.Context) (uuid.UUID, error) {
-	id := c.Param("id")
+	id := c.Param(paramName)
+	parsed, err := ParseUuid(id)
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+	}
+	return parsed, err
+}
+
+func ParseUuidFromQuery(paramName string, c *gin.Context) (uuid.UUID, error) {
+	id := c.Query(paramName)
 	parsed, err := ParseUuid(id)
 	if err != nil {
 		c.Status(http.StatusBadRequest)
