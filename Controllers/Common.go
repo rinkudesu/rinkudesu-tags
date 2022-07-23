@@ -1,66 +1,33 @@
 package Controllers
 
 import (
-	json2 "encoding/json"
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	log "github.com/sirupsen/logrus"
-	"io"
 	"net/http"
 )
 
-func Ok(w http.ResponseWriter) {
-	log.Debug("Responding with OK")
-	w.WriteHeader(200)
+func GetUrl(basePath string, apiVersion string, endpoint string) string {
+	return fmt.Sprintf("%s/%s/%s", basePath, apiVersion, endpoint)
 }
 
-func BadRequest(w http.ResponseWriter) {
-	log.Debug("Responding with BAD REQUEST")
-	w.WriteHeader(400)
-}
-
-func InternalServerError(w http.ResponseWriter) {
-	log.Debug("Responding with INTERNAL ERROR")
-	w.WriteHeader(500)
-}
-
-func NotFound(w http.ResponseWriter) {
-	log.Debug("Responding with NOT FOUND")
-	w.WriteHeader(404)
-}
-
-func MethodNotAllowed(w http.ResponseWriter) {
-	log.Debug("Responding with METHOD NOT ALLOWED")
-	w.WriteHeader(405)
-}
-
-func ReadBody(body io.ReadCloser) ([]byte, error) {
-	array, err := io.ReadAll(body)
+func BindJson(c *gin.Context, obj any) error {
+	err := c.BindJSON(obj)
 	if err != nil {
-		log.Warningf("Failed to read from body %s", err.Error())
+		log.Infof("Failed to parse json: %s", err.Error())
+		c.Status(http.StatusBadRequest)
 	}
-	return array, err
+	return err
 }
 
-func CloseBody(body io.ReadCloser) {
-	err := body.Close()
+func ParseUuidFromParam(paramName string, c *gin.Context) (uuid.UUID, error) {
+	id := c.Param("id")
+	parsed, err := ParseUuid(id)
 	if err != nil {
-		log.Warningf("Failed to close request body: %s", err.Error())
+		c.Status(http.StatusBadRequest)
 	}
-}
-func WriteJsonResponse(w http.ResponseWriter, code int, object interface{}) {
-	json, jsonErr := json2.Marshal(object)
-	if jsonErr != nil {
-		log.Warningf("Failed to serialise to json: %s", jsonErr.Error())
-		InternalServerError(w)
-		return
-	}
-	w.WriteHeader(code)
-	_, err := w.Write(json)
-	if err != nil {
-		log.Warningf("Failed to write response: %s", err.Error())
-		InternalServerError(w)
-		return
-	}
+	return parsed, err
 }
 
 func ParseUuid(id string) (uuid.UUID, error) {

@@ -1,9 +1,8 @@
 package Controllers
 
 import (
-	json2 "encoding/json"
-	log "github.com/sirupsen/logrus"
-	"io"
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"rinkudesu-tags/Models"
 	"rinkudesu-tags/Repositories"
@@ -17,93 +16,91 @@ func NewLinkTagsController(repository *Repositories.LinkTagsRepository) *LinkTag
 	return &LinkTagsController{repository: repository}
 }
 
-func (controller *LinkTagsController) Create(w http.ResponseWriter, linkTagBody io.ReadCloser) {
-	defer CloseBody(linkTagBody)
-	linkTagBytes, err := ReadBody(linkTagBody)
-	if err != nil {
-		InternalServerError(w)
-		return
-	}
-
+func (controller *LinkTagsController) Create(c *gin.Context) {
 	var linkTag Models.LinkTag
-	err = json2.Unmarshal(linkTagBytes, &linkTag)
+	err := BindJson(c, &linkTag)
 	if err != nil {
-		log.Warningf("Failed to parse linkTag from json: %s", err.Error())
-		BadRequest(w)
 		return
 	}
 
 	err = controller.repository.Create(&linkTag)
 	if err != nil {
 		if err == Repositories.AlreadyExistsErr {
-			BadRequest(w)
+			c.Status(http.StatusBadRequest)
 		} else if err == Repositories.NotFoundErr {
-			NotFound(w)
+			c.Status(http.StatusNotFound)
 		} else {
-			InternalServerError(w)
+			c.Status(http.StatusInternalServerError)
 		}
 		return
 	}
 
-	WriteJsonResponse(w, 201, &linkTag)
+	c.JSON(http.StatusCreated, &linkTag)
 }
 
-func (controller *LinkTagsController) Delete(w http.ResponseWriter, stringId string) {
-	id, err := ParseUuid(stringId)
+func (controller *LinkTagsController) Delete(c *gin.Context) {
+	id, err := ParseUuidFromParam("id", c)
 	if err != nil {
-		BadRequest(w)
 		return
 	}
 
 	err = controller.repository.Remove(id)
 	if err != nil {
 		if err == Repositories.NotFoundErr {
-			NotFound(w)
+			c.Status(http.StatusNotFound)
 		} else {
-			InternalServerError(w)
+			c.Status(http.StatusInternalServerError)
 		}
 		return
 	}
 
-	Ok(w)
+	c.Status(http.StatusOK)
 }
 
-func (controller *LinkTagsController) GetLinksForTag(w http.ResponseWriter, stringId string) {
-	id, err := ParseUuid(stringId)
+func (controller *LinkTagsController) GetLinksForTag(c *gin.Context) {
+	id, err := ParseUuidFromParam("id", c)
 	if err != nil {
-		BadRequest(w)
 		return
 	}
 
 	result, err := controller.repository.GetLinksForTag(id)
 	if err != nil {
 		if err == Repositories.NotFoundErr {
-			NotFound(w)
+			c.Status(http.StatusNotFound)
 		} else {
-			InternalServerError(w)
+			c.Status(http.StatusInternalServerError)
 		}
 		return
 	}
 
-	WriteJsonResponse(w, 200, result)
+	c.JSON(http.StatusOK, result)
 }
 
-func (controller *LinkTagsController) GetTagsForLink(w http.ResponseWriter, stringId string) {
-	id, err := ParseUuid(stringId)
+func (controller *LinkTagsController) GetTagsForLink(c *gin.Context) {
+	id, err := ParseUuidFromParam("id", c)
 	if err != nil {
-		BadRequest(w)
 		return
 	}
 
 	result, err := controller.repository.GetTagsForLink(id)
 	if err != nil {
 		if err == Repositories.NotFoundErr {
-			NotFound(w)
+			c.Status(http.StatusNotFound)
 		} else {
-			InternalServerError(w)
+			c.Status(http.StatusInternalServerError)
 		}
 		return
 	}
 
-	WriteJsonResponse(w, 200, result)
+	c.JSON(http.StatusOK, result)
+}
+
+func (controller *LinkTagsController) SetupRoutes(engine *gin.Engine, basePath string) {
+	const apiVersion = "v0"
+	url := GetUrl(basePath, apiVersion, "linkTags")
+
+	engine.POST(url, controller.Create)
+	engine.DELETE(url+"/:id", controller.Delete)
+	engine.GET(fmt.Sprintf("%s/getLinksForTag/:id", url), controller.GetLinksForTag)
+	engine.GET(fmt.Sprintf("%s/getTagsForLink/:id", url), controller.GetTagsForLink)
 }

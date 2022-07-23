@@ -1,23 +1,23 @@
 ﻿package main
 
 import (
+	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"net/http"
 	"os"
 	"rinkudesu-tags/Controllers"
 	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Data/Migrations"
 	"rinkudesu-tags/Repositories"
-	"rinkudesu-tags/Routers"
+	"rinkudesu-tags/Services"
 )
 
 //todo: base path and port should be configurable
 const basePath = "/api"
 
 var (
-	tagsRouter     *Routers.TagsRouter
-	linksRouter    *Routers.LinksRouter
-	linkTagsRouter *Routers.LinkTagsRouter
+	routables []Controllers.Routable
+
+	router *gin.Engine
 )
 
 func init() {
@@ -28,16 +28,12 @@ func init() {
 
 func main() {
 	var connection = Data.DbConnection{}
-	_ = connection.Initialise("postgres://postgres:postgres@localhost:5432/postgres")
+	_ = connection.Initialise("postgres://postgres:postgres@localhost:5432/postgres") //todo: this should be configurable
 	defer connection.Close()
 	migrate(&connection)
 
-	setupRoutes(&connection)
-
-	err := http.ListenAndServe(":5000", nil) //todo: this nil should probably be *something*
-	if err != nil {
-		log.Panic("Unable to listen on port 5000")
-	}
+	createControllers(&connection)
+	setupRouter()
 }
 
 func migrate(connection Data.DbConnector) {
@@ -45,8 +41,25 @@ func migrate(connection Data.DbConnector) {
 	migrator.Migrate()
 }
 
-func setupRoutes(connection Data.DbConnector) {
-	tagsRouter = Routers.NewTagsRouter(connection, basePath)
-	linksRouter = Routers.NewLinksRouter(Controllers.NewLinksController(Repositories.NewLinksRepository(&connection)), basePath)
-	linkTagsRouter = Routers.NewLinkTagsRouter(Controllers.NewLinkTagsController(Repositories.NewLinkTagsRepository(connection)), basePath)
+func createControllers(connection Data.DbConnector) {
+	routables = make([]Controllers.Routable, 3)
+	routables[0] = Controllers.NewLinksController(Repositories.NewLinksRepository(&connection))
+	routables[1] = Controllers.NewTagsController(*Repositories.NewTagsRepository(Repositories.NewTagQueryExecutor(connection)))
+	routables[2] = Controllers.NewLinkTagsController(Repositories.NewLinkTagsRepository(connection))
+}
+
+func setupRouter() {
+	router = gin.New()
+	router.Use(gin.Recovery())
+	router.Use(Services.GetGinLogger())
+	_ = router.SetTrustedProxies(nil) //todo: this should read from config (and probably handle error then as well)
+	//todo: GIN_MODE=release
+
+	for _, routable := range routables {
+		routable.SetupRoutes(router, basePath)
+	}
+
+	if err := router.Run("localhost:5000"); err != nil { //todo: make url configurable
+		log.Panicf("Server failed while listening: %s", err.Error())
+	}
 }

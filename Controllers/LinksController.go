@@ -1,11 +1,11 @@
 package Controllers
 
 import (
-	json2 "encoding/json"
-	"io"
 	"net/http"
 	"rinkudesu-tags/Models"
 	"rinkudesu-tags/Repositories"
+
+	"github.com/gin-gonic/gin"
 )
 
 type LinksController struct {
@@ -16,45 +16,48 @@ func NewLinksController(repository *Repositories.LinksRepository) *LinksControll
 	return &LinksController{repository: repository}
 }
 
-func (controller *LinksController) CreateLink(w http.ResponseWriter, linkBody io.ReadCloser) {
-	defer CloseBody(linkBody)
-	linkBytes, err := ReadBody(linkBody)
-	if err != nil {
-		InternalServerError(w)
-		return
-	}
+func (controller *LinksController) CreateLink(c *gin.Context) {
 	var link Models.Link
-	err = json2.Unmarshal(linkBytes, &link)
+	err := BindJson(c, &link)
 	if err != nil {
-		BadRequest(w)
 		return
 	}
+
 	err = controller.repository.Create(&link)
 	if err != nil {
 		if err == Repositories.AlreadyExistsErr {
-			BadRequest(w)
+			c.Status(http.StatusBadRequest)
 		} else {
-			InternalServerError(w)
+			c.Status(http.StatusInternalServerError)
 		}
 		return
 	}
-	WriteJsonResponse(w, 201, &link)
+
+	c.JSON(http.StatusCreated, &link)
 }
 
-func (controller *LinksController) DeleteLink(w http.ResponseWriter, id string) {
-	linkUuid, err := ParseUuid(id)
+func (controller *LinksController) DeleteLink(c *gin.Context) {
+	linkUuid, err := ParseUuidFromParam("id", c)
 	if err != nil {
-		BadRequest(w)
 		return
 	}
+
 	err = controller.repository.Delete(linkUuid)
 	if err != nil {
 		if err == Repositories.NotFoundErr {
-			NotFound(w)
+			c.Status(http.StatusNotFound)
 		} else {
-			InternalServerError(w)
+			c.Status(http.StatusInternalServerError)
 		}
 		return
 	}
-	Ok(w)
+	c.Status(http.StatusOK)
+}
+
+func (controller *LinksController) SetupRoutes(router *gin.Engine, basePath string) {
+	const apiVersion = "v0"
+	url := GetUrl(basePath, apiVersion, "links")
+
+	router.POST(url, controller.CreateLink)
+	router.DELETE(url+"/:id", controller.DeleteLink)
 }
