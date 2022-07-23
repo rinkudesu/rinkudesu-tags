@@ -7,7 +7,6 @@ import (
 	"rinkudesu-tags/Controllers"
 	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Data/Migrations"
-	"rinkudesu-tags/Repositories"
 	"rinkudesu-tags/Services"
 )
 
@@ -43,9 +42,9 @@ func migrate(connection Data.DbConnector) {
 
 func createControllers(connection Data.DbConnector) {
 	routables = make([]Controllers.Routable, 3)
-	routables[0] = Controllers.NewLinksController(Repositories.NewLinksRepository(&connection))
-	routables[1] = Controllers.NewTagsController(*Repositories.NewTagsRepository(Repositories.NewTagQueryExecutor(connection)))
-	routables[2] = Controllers.NewLinkTagsController(Repositories.NewLinkTagsRepository(connection))
+	routables[0] = Controllers.CreateLinksController(connection)
+	routables[1] = Controllers.CreateTagsController(connection)
+	routables[2] = Controllers.CreateLinkTagsController(connection)
 }
 
 func setupRouter() {

@@ -24,7 +24,7 @@ func newLinkTagsRepositoryTests() *linkTagsRepositoryTests {
 	return &linkTagsRepositoryTests{
 		connection: database,
 		repo:       repo,
-		linkRepo:   NewLinksRepository(&database),
+		linkRepo:   CreateLinksRepository(database),
 		tagRepo:    NewTagsRepository(NewTagQueryExecutor(database)),
 		dbName:     dbName,
 	}
