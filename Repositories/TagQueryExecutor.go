@@ -10,7 +10,7 @@ type TagQueryExecutor struct {
 	connection Data.DbConnector
 }
 
-func NewTagQueryExecutor(connection Data.DbConnector) *TagQueryExecutor {
+func NewTagQueryExecutor(connection Data.DbConnector) TagQueryExecutable {
 	return &TagQueryExecutor{connection: connection}
 }
 
