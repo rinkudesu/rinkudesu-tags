@@ -57,7 +57,6 @@ func setupRouter() {
 	if err != nil {
 		log.Panicf("Failed to set trusted proxies: %s", err.Error())
 	}
-	//todo: GIN_MODE=release
 
 	for _, routable := range routables {
 		routable.SetupRoutes(router, config.BasePath)
