@@ -8,27 +8,27 @@ package Controllers
 
 import (
 	"github.com/google/wire"
-	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Repositories"
+	"rinkudesu-tags/Services"
 )
 
 // Injectors from controllers_wire.go:
 
-func CreateLinksController(dbConnection Data.DbConnector) *LinksController {
-	linksRepository := Repositories.NewLinksRepository(dbConnection)
+func CreateLinksController(state *Services.GlobalState) *LinksController {
+	linksRepository := Repositories.NewLinksRepository(state)
 	linksController := NewLinksController(linksRepository)
 	return linksController
 }
 
-func CreateTagsController(dbConnection Data.DbConnector) *TagsController {
-	tagQueryExecutable := Repositories.NewTagQueryExecutor(dbConnection)
+func CreateTagsController(state *Services.GlobalState) *TagsController {
+	tagQueryExecutable := Repositories.NewTagQueryExecutor(state)
 	tagsRepository := Repositories.NewTagsRepository(tagQueryExecutable)
 	tagsController := NewTagsController(tagsRepository)
 	return tagsController
 }
 
-func CreateLinkTagsController(dbConnection Data.DbConnector) *LinkTagsController {
-	linkTagsRepository := Repositories.NewLinkTagsRepository(dbConnection)
+func CreateLinkTagsController(state *Services.GlobalState) *LinkTagsController {
+	linkTagsRepository := Repositories.NewLinkTagsRepository(state)
 	linkTagsController := NewLinkTagsController(linkTagsRepository)
 	return linkTagsController
 }

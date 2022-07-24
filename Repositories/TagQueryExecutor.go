@@ -4,14 +4,15 @@ import (
 	"github.com/gofrs/uuid"
 	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Models"
+	"rinkudesu-tags/Services"
 )
 
 type TagQueryExecutor struct {
 	connection Data.DbConnector
 }
 
-func NewTagQueryExecutor(connection Data.DbConnector) TagQueryExecutable {
-	return &TagQueryExecutor{connection: connection}
+func NewTagQueryExecutor(state *Services.GlobalState) TagQueryExecutable {
+	return &TagQueryExecutor{connection: state.DbConnection}
 }
 
 func (executor TagQueryExecutor) GetAll() (Data.Rows, error) {

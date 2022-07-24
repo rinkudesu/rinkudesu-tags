@@ -5,7 +5,7 @@ package Repositories
 
 import (
 	"github.com/google/wire"
-	"rinkudesu-tags/Data"
+	"rinkudesu-tags/Services"
 )
 
 var (
@@ -14,17 +14,17 @@ var (
 	LinkTagsRepositorySet = wire.NewSet(NewLinkTagsRepository)
 )
 
-func CreateLinksRepository(dbConnection Data.DbConnector) *LinksRepository {
+func CreateLinksRepository(state *Services.GlobalState) *LinksRepository {
 	wire.Build(LinkRepositorySet)
 	return nil
 }
 
-func CreateTagsRepository(dbConnection Data.DbConnector) *TagsRepository {
+func CreateTagsRepository(state *Services.GlobalState) *TagsRepository {
 	wire.Build(TagsRepositorySet)
 	return nil
 }
 
-func CreateLinkTagsRepository(dbConnection Data.DbConnector) *LinkTagsRepository {
+func CreateLinkTagsRepository(state *Services.GlobalState) *LinkTagsRepository {
 	wire.Build(LinkTagsRepositorySet)
 	return nil
 }

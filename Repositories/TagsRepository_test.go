@@ -6,6 +6,7 @@ import (
 	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Mocks"
 	"rinkudesu-tags/Models"
+	"rinkudesu-tags/Services"
 	"testing"
 )
 
@@ -18,9 +19,10 @@ type tagsRepositoryTests struct {
 
 func newTagsRepositoryTests() *tagsRepositoryTests {
 	database, name := Mocks.GetDatabase()
-	executor := NewTagQueryExecutor(database)
+	globalState := Services.NewGlobalState(database)
+	executor := NewTagQueryExecutor(globalState)
 	return &tagsRepositoryTests{
-		repo:     CreateTagsRepository(database),
+		repo:     CreateTagsRepository(globalState),
 		executor: executor,
 		database: &database,
 		dbName:   name,

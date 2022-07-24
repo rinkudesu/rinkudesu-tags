@@ -5,8 +5,8 @@ package Controllers
 
 import (
 	"github.com/google/wire"
-	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Repositories"
+	"rinkudesu-tags/Services"
 )
 
 var (
@@ -15,17 +15,17 @@ var (
 	LinkTagsControllerSet = wire.NewSet(NewLinkTagsController, Repositories.LinkTagsRepositorySet)
 )
 
-func CreateLinksController(dbConnection Data.DbConnector) *LinksController {
+func CreateLinksController(state *Services.GlobalState) *LinksController {
 	wire.Build(LinksControllerSet)
 	return nil
 }
 
-func CreateTagsController(dbConnection Data.DbConnector) *TagsController {
+func CreateTagsController(state *Services.GlobalState) *TagsController {
 	wire.Build(TagsControllerSet)
 	return nil
 }
 
-func CreateLinkTagsController(dbConnection Data.DbConnector) *LinkTagsController {
+func CreateLinkTagsController(state *Services.GlobalState) *LinkTagsController {
 	wire.Build(LinkTagsControllerSet)
 	return nil
 }
