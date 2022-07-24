@@ -1,7 +1,6 @@
 package Data
 
 type DbConnector interface {
-	InitialiseEnv() error
 	Initialise(connectionString string) error
 	QueryRow(sql string, args ...interface{}) (Row, error)
 	QueryRows(sql string, args ...interface{}) (Rows, error)

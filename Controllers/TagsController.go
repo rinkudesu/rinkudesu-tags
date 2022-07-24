@@ -8,8 +8,6 @@ import (
 	"rinkudesu-tags/Repositories"
 )
 
-//todo: look into some sort of DI
-
 type TagsController struct {
 	repository *Repositories.TagsRepository
 }

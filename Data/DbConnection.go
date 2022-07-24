@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
-	"os"
 )
 
 var (
@@ -21,12 +20,10 @@ type DbConnection struct {
 	closed bool
 }
 
-func (connection *DbConnection) InitialiseEnv() error {
-	connectionString := os.Getenv("RINKU_TAGS_CONNECTIONSTRING")
-	return connection.Initialise(connectionString)
-}
-
 func (connection *DbConnection) Initialise(connectionString string) error {
+	if connectionString == "" {
+		log.Panic("Database connection string cannot be empty")
+	}
 	if connection.pool != nil {
 		return AlreadyInitialisedError
 	}

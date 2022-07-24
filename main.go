@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 import (
 	"github.com/gin-gonic/gin"
@@ -10,24 +10,26 @@ import (
 	"rinkudesu-tags/Services"
 )
 
-//todo: base path and port should be configurable
-const basePath = "/api"
-
 var (
 	routables []Controllers.Routable
-
-	router *gin.Engine
+	router    *gin.Engine
+	config    *Configuration
 )
 
 func init() {
+	config = NewConfiguration()
+
 	log.SetFormatter(&log.TextFormatter{FullTimestamp: true, DisableColors: true})
 	log.SetOutput(os.Stdout)
-	log.SetLevel(log.InfoLevel) //todo: this should be configurable
+	log.SetLevel(config.LogLevel)
 }
 
 func main() {
 	var connection = Data.DbConnection{}
-	_ = connection.Initialise("postgres://postgres:postgres@localhost:5432/postgres") //todo: this should be configurable
+	err := connection.Initialise(config.DbConnection)
+	if err != nil {
+		log.Panicf("Failed to initialise database connection: %s", err.Error())
+	}
 	defer connection.Close()
 	migrate(&connection)
 
@@ -51,14 +53,17 @@ func setupRouter() {
 	router = gin.New()
 	router.Use(gin.Recovery())
 	router.Use(Services.GetGinLogger())
-	_ = router.SetTrustedProxies(nil) //todo: this should read from config (and probably handle error then as well)
+	err := router.SetTrustedProxies(config.TrustedProxies)
+	if err != nil {
+		log.Panicf("Failed to set trusted proxies: %s", err.Error())
+	}
 	//todo: GIN_MODE=release
 
 	for _, routable := range routables {
-		routable.SetupRoutes(router, basePath)
+		routable.SetupRoutes(router, config.BasePath)
 	}
 
-	if err := router.Run("localhost:5000"); err != nil { //todo: make url configurable
+	if err := router.Run(config.ListenAddress); err != nil {
 		log.Panicf("Server failed while listening: %s", err.Error())
 	}
 }
