@@ -5,14 +5,15 @@ import (
 	log "github.com/sirupsen/logrus"
 	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Models"
+	"rinkudesu-tags/Services"
 )
 
 type LinkTagsRepository struct {
 	connection Data.DbConnector
 }
 
-func NewLinkTagsRepository(connection Data.DbConnector) *LinkTagsRepository {
-	return &LinkTagsRepository{connection: connection}
+func NewLinkTagsRepository(state *Services.GlobalState) *LinkTagsRepository {
+	return &LinkTagsRepository{connection: state.DbConnection}
 }
 
 func (repo *LinkTagsRepository) Create(linkTag *Models.LinkTag) error {

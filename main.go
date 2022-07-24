@@ -14,6 +14,7 @@ var (
 	routables []Controllers.Routable
 	router    *gin.Engine
 	config    *Configuration
+	state     *Services.GlobalState
 )
 
 func init() {
@@ -25,16 +26,23 @@ func init() {
 }
 
 func main() {
+	makeGlobalState()
+
+	defer state.DbConnection.Close()
+	migrate(state.DbConnection)
+
+	createControllers()
+	setupRouter()
+}
+
+func makeGlobalState() {
 	var connection = Data.DbConnection{}
 	err := connection.Initialise(config.DbConnection)
 	if err != nil {
 		log.Panicf("Failed to initialise database connection: %s", err.Error())
 	}
-	defer connection.Close()
-	migrate(&connection)
 
-	createControllers(&connection)
-	setupRouter()
+	state = Services.NewGlobalState(&connection)
 }
 
 func migrate(connection Data.DbConnector) {
@@ -42,11 +50,11 @@ func migrate(connection Data.DbConnector) {
 	migrator.Migrate()
 }
 
-func createControllers(connection Data.DbConnector) {
+func createControllers() {
 	routables = make([]Controllers.Routable, 3)
-	routables[0] = Controllers.CreateLinksController(connection)
-	routables[1] = Controllers.CreateTagsController(connection)
-	routables[2] = Controllers.CreateLinkTagsController(connection)
+	routables[0] = Controllers.CreateLinksController(state)
+	routables[1] = Controllers.CreateTagsController(state)
+	routables[2] = Controllers.CreateLinkTagsController(state)
 }
 
 func setupRouter() {

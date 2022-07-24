@@ -6,6 +6,7 @@ import (
 	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Mocks"
 	"rinkudesu-tags/Models"
+	"rinkudesu-tags/Services"
 	"testing"
 )
 
@@ -20,7 +21,7 @@ func newLinksRepositoryTests() *linksRepositoryTests {
 	return &linksRepositoryTests{
 		connection: &database,
 		dbName:     name,
-		repo:       CreateLinksRepository(database),
+		repo:       CreateLinksRepository(Services.NewGlobalState(database)),
 	}
 }
 

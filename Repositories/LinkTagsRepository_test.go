@@ -7,6 +7,7 @@ import (
 	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Mocks"
 	"rinkudesu-tags/Models"
+	"rinkudesu-tags/Services"
 	"testing"
 )
 
@@ -20,12 +21,13 @@ type linkTagsRepositoryTests struct {
 
 func newLinkTagsRepositoryTests() *linkTagsRepositoryTests {
 	database, dbName := Mocks.GetDatabase()
-	repo := NewLinkTagsRepository(database)
+	globalState := Services.NewGlobalState(database)
+	repo := NewLinkTagsRepository(globalState)
 	return &linkTagsRepositoryTests{
 		connection: database,
 		repo:       repo,
-		linkRepo:   CreateLinksRepository(database),
-		tagRepo:    NewTagsRepository(NewTagQueryExecutor(database)),
+		linkRepo:   CreateLinksRepository(globalState),
+		tagRepo:    NewTagsRepository(NewTagQueryExecutor(globalState)),
 		dbName:     dbName,
 	}
 }
