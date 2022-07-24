@@ -1,4 +1,4 @@
-﻿package Models
+package Models
 
 import "github.com/gofrs/uuid"
 
