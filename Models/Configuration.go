@@ -1,4 +1,4 @@
-package main
+package Models
 
 import (
 	"github.com/sirupsen/logrus"
@@ -13,6 +13,8 @@ type Configuration struct {
 	DbConnection   string
 	TrustedProxies []string
 	ListenAddress  string
+	SsoAuthority   string
+	SsoClientId    string
 }
 
 func NewConfiguration() *Configuration {
@@ -42,11 +44,20 @@ func NewConfiguration() *Configuration {
 		listenAddress = loadedAddress
 	}
 
+	ssoClientId := "rinkudesu"
+	if loadedClientId, isPresent := os.LookupEnv("TAGS_CLIENTID"); isPresent {
+		ssoClientId = loadedClientId
+	}
+
+	ssoAuthority := os.Getenv("TAGS_AUTHORITY") //todo: add to docker-compose
+
 	return &Configuration{
 		BasePath:       basePath,
 		LogLevel:       logLevel,
 		DbConnection:   dbConnection,
 		TrustedProxies: trustedProxies,
 		ListenAddress:  listenAddress,
+		SsoClientId:    ssoClientId,
+		SsoAuthority:   ssoAuthority,
 	}
 }
