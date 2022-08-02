@@ -22,3 +22,4 @@ services:
       TAGS_DB: "postgres://rinkudesu:your_very_safe_password_here@postgres:5432/rinkudesu"
       TAGS_LOG-LEVEL: "info"
       GIN_MODE: "release"
+      TAGS_AUTHORITY: "rinkudesu"

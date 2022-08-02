@@ -1,4 +1,4 @@
-package main
+package Models
 
 import (
 	"github.com/sirupsen/logrus"
@@ -8,11 +8,14 @@ import (
 )
 
 type Configuration struct {
-	BasePath       string
-	LogLevel       logrus.Level
-	DbConnection   string
-	TrustedProxies []string
-	ListenAddress  string
+	BasePath            string
+	LogLevel            logrus.Level
+	DbConnection        string
+	TrustedProxies      []string
+	ListenAddress       string
+	SsoAuthority        string
+	SsoClientId         string
+	IgnoreAuthorisation bool
 }
 
 func NewConfiguration() *Configuration {
@@ -42,11 +45,23 @@ func NewConfiguration() *Configuration {
 		listenAddress = loadedAddress
 	}
 
+	ssoClientId := "rinkudesu"
+	if loadedClientId, isPresent := os.LookupEnv("TAGS_CLIENTID"); isPresent {
+		ssoClientId = loadedClientId
+	}
+
+	ssoAuthority := os.Getenv("TAGS_AUTHORITY")
+
+	_, ignoreAuthorisation := os.LookupEnv("TAGS_IGNORE_AUTHORISATION_UNSAFE")
+
 	return &Configuration{
-		BasePath:       basePath,
-		LogLevel:       logLevel,
-		DbConnection:   dbConnection,
-		TrustedProxies: trustedProxies,
-		ListenAddress:  listenAddress,
+		BasePath:            basePath,
+		LogLevel:            logLevel,
+		DbConnection:        dbConnection,
+		TrustedProxies:      trustedProxies,
+		ListenAddress:       listenAddress,
+		SsoClientId:         ssoClientId,
+		SsoAuthority:        ssoAuthority,
+		IgnoreAuthorisation: ignoreAuthorisation,
 	}
 }

@@ -22,3 +22,4 @@ services:
     environment:
       TAGS_DB: "postgres://rinkudesu:rinkudesu@postgres:5432/rinkudesu"
       TAGS_LOG-LEVEL: "debug"
+      TAGS_AUTHORITY: "rinkudesu"
