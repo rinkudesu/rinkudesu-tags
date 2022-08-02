@@ -19,8 +19,7 @@ func CreateLinksRepository(state *Services.GlobalState) *LinksRepository {
 }
 
 func CreateTagsRepository(state *Services.GlobalState) *TagsRepository {
-	tagQueryExecutable := NewTagQueryExecutor(state)
-	tagsRepository := NewTagsRepository(tagQueryExecutable)
+	tagsRepository := NewTagsRepository(state)
 	return tagsRepository
 }
 
@@ -33,6 +32,6 @@ func CreateLinkTagsRepository(state *Services.GlobalState) *LinkTagsRepository {
 
 var (
 	LinkRepositorySet     = wire.NewSet(NewLinksRepository)
-	TagsRepositorySet     = wire.NewSet(NewTagsRepository, NewTagQueryExecutor)
+	TagsRepositorySet     = wire.NewSet(NewTagsRepository)
 	LinkTagsRepositorySet = wire.NewSet(NewLinkTagsRepository)
 )

@@ -45,9 +45,11 @@ func makeGlobalState() {
 		log.Panicf("Failed to initialise database connection: %s", err.Error())
 	}
 
-	jwtHandler, err = Authorisation.NewJWTHandler(config)
-	if err != nil {
-		log.Panicf("Failed to initialise jwt handler: %s", err.Error())
+	if !config.IgnoreAuthorisation {
+		jwtHandler, err = Authorisation.NewJWTHandler(config)
+		if err != nil {
+			log.Panicf("Failed to initialise jwt handler: %s", err.Error())
+		}
 	}
 
 	state = Services.NewGlobalState(&connection)
@@ -69,9 +71,7 @@ func setupRouter() {
 	router = gin.New()
 	router.Use(gin.Recovery())
 	router.Use(Services.GetGinLogger())
-	if !config.IgnoreAuthorisation {
-		router.Use(Authorisation.GetGinAuthorisationFilter(jwtHandler))
-	}
+	router.Use(Authorisation.GetGinAuthorisationFilter(jwtHandler, config))
 	err := router.SetTrustedProxies(config.TrustedProxies)
 	if err != nil {
 		log.Panicf("Failed to set trusted proxies: %s", err.Error())

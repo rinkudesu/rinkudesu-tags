@@ -14,14 +14,17 @@ type linksRepositoryTests struct {
 	connection *Data.DbConnector
 	repo       *LinksRepository
 	dbName     string
+	userInfo   *Models.UserInfo
 }
 
 func newLinksRepositoryTests() *linksRepositoryTests {
 	database, name := Mocks.GetDatabase()
+	userId, _ := uuid.NewV4()
 	return &linksRepositoryTests{
 		connection: &database,
 		dbName:     name,
 		repo:       CreateLinksRepository(Services.NewGlobalState(database)),
+		userInfo:   &Models.UserInfo{UserId: userId},
 	}
 }
 
@@ -31,7 +34,7 @@ func TestLinksRepository_Create_DataCreated(t *testing.T) {
 	id, _ := uuid.NewV4()
 	testLink := Models.Link{Id: id}
 
-	result := test.repo.Create(&testLink)
+	result := test.repo.Create(&testLink, test.userInfo)
 
 	assert.Nil(t, result)
 	linksRows, _ := (*test.connection).QueryRows("select * from links")
@@ -51,9 +54,9 @@ func TestLinksRepository_Create_DuplicateData(t *testing.T) {
 	defer Mocks.DropDatabase(test.connection, test.dbName)
 	id, _ := uuid.NewV4()
 	testLink := Models.Link{Id: id}
-	_ = test.repo.Create(&testLink)
+	_ = test.repo.Create(&testLink, test.userInfo)
 
-	result := test.repo.Create(&testLink)
+	result := test.repo.Create(&testLink, test.userInfo)
 
 	assert.NotNil(t, result)
 	assert.Equal(t, AlreadyExistsErr, result)

@@ -5,10 +5,18 @@ import (
 	"github.com/gofrs/uuid"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"rinkudesu-tags/Models"
 )
 
-func GetGinAuthorisationFilter(jwtValidator JWTValidator) gin.HandlerFunc {
+func GetGinAuthorisationFilter(jwtValidator JWTValidator, config *Models.Configuration) gin.HandlerFunc {
 	return func(context *gin.Context) {
+		if config.IgnoreAuthorisation {
+			log.Warningf("User authorisation is disabled by a config value. Using %s as user id", uuid.Nil.String())
+			context.Set("userId", uuid.Nil)
+			context.Next()
+			return
+		}
+
 		token, claims, err := jwtValidator.ValidateTokenFromHeader(context)
 		if err != nil {
 			context.AbortWithStatus(http.StatusUnauthorized)

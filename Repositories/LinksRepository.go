@@ -16,8 +16,8 @@ func NewLinksRepository(state *Services.GlobalState) *LinksRepository {
 	return &LinksRepository{connection: state.DbConnection}
 }
 
-func (repo *LinksRepository) Create(link *Models.Link) error {
-	_, err := repo.connection.Exec("insert into links values ($1)", link.Id)
+func (repo *LinksRepository) Create(link *Models.Link, userInfo *Models.UserInfo) error {
+	_, err := repo.connection.Exec("insert into links values ($1, $2)", link.Id, userInfo.UserId)
 	if err != nil {
 		if IsPostgresDuplicateValue(err) {
 			return AlreadyExistsErr
@@ -28,8 +28,8 @@ func (repo *LinksRepository) Create(link *Models.Link) error {
 	return nil
 }
 
-func (repo *LinksRepository) Delete(id uuid.UUID) error {
-	result, err := repo.connection.Exec("delete from links where id = $1", id)
+func (repo *LinksRepository) Delete(id uuid.UUID, userInfo *Models.UserInfo) error {
+	result, err := repo.connection.Exec("delete from links where id = $1 and user_id = $2", id, userInfo.UserId)
 	if err != nil {
 		log.Warningf("Failed to delete link: %s", err.Error())
 		return err
