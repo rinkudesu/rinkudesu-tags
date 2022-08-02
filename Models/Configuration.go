@@ -50,7 +50,7 @@ func NewConfiguration() *Configuration {
 		ssoClientId = loadedClientId
 	}
 
-	ssoAuthority := os.Getenv("TAGS_AUTHORITY") //todo: add to docker-compose
+	ssoAuthority := os.Getenv("TAGS_AUTHORITY")
 
 	_, ignoreAuthorisation := os.LookupEnv("TAGS_IGNORE_AUTHORISATION_UNSAFE")
 
