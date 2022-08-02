@@ -6,6 +6,10 @@ import (
 	"net/http"
 )
 
+const (
+	nilResponseWriterNotSupportedMessage = "not supported"
+)
+
 type NilResponseWriter struct {
 }
 
@@ -13,22 +17,24 @@ func (n NilResponseWriter) Header() http.Header {
 	return nil
 }
 
-func (n NilResponseWriter) Write(bytes []byte) (int, error) {
+func (n NilResponseWriter) Write(_ []byte) (int, error) {
 	return 0, nil
 }
 
-func (n NilResponseWriter) WriteHeader(statusCode int) {
+func (n NilResponseWriter) WriteHeader(_ int) {
+	// do nothing
 }
 
 func (n NilResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	panic("not supported")
+	panic(nilResponseWriterNotSupportedMessage)
 }
 
 func (n NilResponseWriter) Flush() {
+	// do nothing
 }
 
 func (n NilResponseWriter) CloseNotify() <-chan bool {
-	panic("not supported")
+	panic(nilResponseWriterNotSupportedMessage)
 }
 
 func (n NilResponseWriter) Status() int {
@@ -39,7 +45,7 @@ func (n NilResponseWriter) Size() int {
 	return 0
 }
 
-func (n NilResponseWriter) WriteString(s string) (int, error) {
+func (n NilResponseWriter) WriteString(_ string) (int, error) {
 	return 0, nil
 }
 
@@ -48,8 +54,9 @@ func (n NilResponseWriter) Written() bool {
 }
 
 func (n NilResponseWriter) WriteHeaderNow() {
+	// do nothing
 }
 
 func (n NilResponseWriter) Pusher() http.Pusher {
-	panic("not supported")
+	panic(nilResponseWriterNotSupportedMessage)
 }
