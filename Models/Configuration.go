@@ -8,13 +8,14 @@ import (
 )
 
 type Configuration struct {
-	BasePath       string
-	LogLevel       logrus.Level
-	DbConnection   string
-	TrustedProxies []string
-	ListenAddress  string
-	SsoAuthority   string
-	SsoClientId    string
+	BasePath            string
+	LogLevel            logrus.Level
+	DbConnection        string
+	TrustedProxies      []string
+	ListenAddress       string
+	SsoAuthority        string
+	SsoClientId         string
+	IgnoreAuthorisation bool
 }
 
 func NewConfiguration() *Configuration {
@@ -51,13 +52,16 @@ func NewConfiguration() *Configuration {
 
 	ssoAuthority := os.Getenv("TAGS_AUTHORITY") //todo: add to docker-compose
 
+	_, ignoreAuthorisation := os.LookupEnv("TAGS_IGNORE_AUTHORISATION_UNSAFE")
+
 	return &Configuration{
-		BasePath:       basePath,
-		LogLevel:       logLevel,
-		DbConnection:   dbConnection,
-		TrustedProxies: trustedProxies,
-		ListenAddress:  listenAddress,
-		SsoClientId:    ssoClientId,
-		SsoAuthority:   ssoAuthority,
+		BasePath:            basePath,
+		LogLevel:            logLevel,
+		DbConnection:        dbConnection,
+		TrustedProxies:      trustedProxies,
+		ListenAddress:       listenAddress,
+		SsoClientId:         ssoClientId,
+		SsoAuthority:        ssoAuthority,
+		IgnoreAuthorisation: ignoreAuthorisation,
 	}
 }

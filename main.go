@@ -4,21 +4,24 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"os"
+	"rinkudesu-tags/Authorisation"
 	"rinkudesu-tags/Controllers"
 	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Data/Migrations"
+	"rinkudesu-tags/Models"
 	"rinkudesu-tags/Services"
 )
 
 var (
-	routables []Controllers.Routable
-	router    *gin.Engine
-	config    *Configuration
-	state     *Services.GlobalState
+	routables  []Controllers.Routable
+	router     *gin.Engine
+	config     *Models.Configuration
+	state      *Services.GlobalState
+	jwtHandler *Authorisation.JWTHandler
 )
 
 func init() {
-	config = NewConfiguration()
+	config = Models.NewConfiguration()
 
 	log.SetFormatter(&log.TextFormatter{FullTimestamp: true, DisableColors: true})
 	log.SetOutput(os.Stdout)
@@ -42,6 +45,11 @@ func makeGlobalState() {
 		log.Panicf("Failed to initialise database connection: %s", err.Error())
 	}
 
+	jwtHandler, err = Authorisation.NewJWTHandler(config)
+	if err != nil {
+		log.Panicf("Failed to initialise jwt handler: %s", err.Error())
+	}
+
 	state = Services.NewGlobalState(&connection)
 }
 
@@ -61,6 +69,9 @@ func setupRouter() {
 	router = gin.New()
 	router.Use(gin.Recovery())
 	router.Use(Services.GetGinLogger())
+	if !config.IgnoreAuthorisation {
+		router.Use(Authorisation.GetGinAuthorisationFilter(jwtHandler))
+	}
 	err := router.SetTrustedProxies(config.TrustedProxies)
 	if err != nil {
 		log.Panicf("Failed to set trusted proxies: %s", err.Error())
