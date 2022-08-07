@@ -9,9 +9,11 @@ ENV TAGS_ADDRESS="0.0.0.0:5000"
 EXPOSE 5000
 WORKDIR /app
 ARG user=rinkudesu
+RUN apk add --no-cache curl 
 RUN adduser -D -H -s /bin/false $user
 RUN addgroup $user $user
 COPY --from=build --chown=$user:$user /src/rinkudesu-tags .
 RUN chmod 100 rinkudesu-tags
 USER $user
+HEALTHCHECK --interval=20s --start-period=5s --retries=3 CMD curl --fail http://localhost:5000/health || exit 1
 ENTRYPOINT ["/app/rinkudesu-tags"]

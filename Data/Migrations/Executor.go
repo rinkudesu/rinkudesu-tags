@@ -12,16 +12,16 @@ type Executor struct {
 	migrations []func(executor Executor) error
 }
 
-func NewExecutor(connection Data.DbConnector) Executor {
+func NewExecutor(connection Data.DbConnector) *Executor {
 	var executor = Executor{
 		connection: connection,
 	}
 	executor.initialiseMigrationFunctions()
-	return executor
+	return &executor
 }
 
 func (e *Executor) Migrate() {
-	latest := e.getLatestMigration()
+	latest, _ := e.getLatestMigration()
 	if latest == currentVersion {
 		return
 	}
@@ -38,21 +38,29 @@ func (e *Executor) Migrate() {
 	}
 }
 
-func (e *Executor) getLatestMigration() int {
+func (e *Executor) getLatestMigration() (int, error) {
 	row, err := e.connection.QueryRow("SELECT id FROM migrations ORDER BY id DESC LIMIT 1;")
 	if err != nil {
 		log.Info("Migrations table not found, assuming no migrations ever performed")
-		return -1
+		return -1, err
 	}
 
 	var latest int
 	err = row.Scan(&latest)
 	if err != nil {
 		log.Warning("Failed to read latest performed migration, assuming no migrations ever performed")
-		return -1
+		return -1, err
 	}
 	log.Infof("Last applied migration: %d", latest)
-	return latest
+	return latest, nil
+}
+
+func (e *Executor) IsMigrated() (bool, error) {
+	current, err := e.getLatestMigration()
+	if err != nil {
+		return false, err
+	}
+	return current == currentVersion, nil
 }
 
 func (e *Executor) initialiseMigrationFunctions() {
