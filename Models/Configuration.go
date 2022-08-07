@@ -1,15 +1,14 @@
 package Models
 
 import (
-	"github.com/sirupsen/logrus"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"strings"
 )
 
 type Configuration struct {
 	BasePath            string
-	LogLevel            logrus.Level
+	LogLevel            log.Level
 	DbConnection        string
 	TrustedProxies      []string
 	ListenAddress       string
@@ -24,9 +23,9 @@ func NewConfiguration() *Configuration {
 		basePath = loadedPath
 	}
 
-	logLevel := logrus.InfoLevel
+	logLevel := log.InfoLevel
 	if logLevelString, isPresent := os.LookupEnv("TAGS_LOG-LEVEL"); isPresent {
-		loadedLogLevel, err := logrus.ParseLevel(logLevelString)
+		loadedLogLevel, err := log.ParseLevel(logLevelString)
 		if err != nil {
 			log.Panicf("Failed to parse log level: %s", err.Error())
 		}
@@ -53,6 +52,10 @@ func NewConfiguration() *Configuration {
 	ssoAuthority := os.Getenv("TAGS_AUTHORITY")
 
 	_, ignoreAuthorisation := os.LookupEnv("TAGS_IGNORE_AUTHORISATION_UNSAFE")
+
+	if ignoreAuthorisation {
+		log.Warning("Authorisation is being ignored, THIS IS UNSAFE, DON'T USE IN PRODUCTION")
+	}
 
 	return &Configuration{
 		BasePath:            basePath,
