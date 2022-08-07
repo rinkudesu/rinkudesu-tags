@@ -28,6 +28,10 @@ func newLinksRepositoryTests() *linksRepositoryTests {
 	}
 }
 
+func (test *linksRepositoryTests) close() {
+	Mocks.DropDatabase(test.connection, test.dbName)
+}
+
 func TestLinksRepository_Create_DataCreated(t *testing.T) {
 	test := newLinksRepositoryTests()
 	defer Mocks.DropDatabase(test.connection, test.dbName)
@@ -116,4 +120,32 @@ func TestLinksRepository_Delete_LinkDoesntExist(t *testing.T) {
 	assert.Equal(t, NotFoundErr, result)
 	linksRows, _ := test.connection.QueryRows("select * from links")
 	assert.False(t, linksRows.Next())
+}
+
+func TestLinksRepository_Exists_ExistsForDifferentUser_ReturnsFalse(t *testing.T) {
+	test := newLinksRepositoryTests()
+	t.Cleanup(test.close)
+	id, _ := uuid.NewV4()
+	testLink := Models.Link{Id: id}
+	anotherUserId, _ := uuid.NewV4()
+	anotherUserInfo := Models.UserInfo{UserId: anotherUserId}
+	_ = test.repo.Create(&testLink, &anotherUserInfo)
+
+	result, err := test.repo.Exists(id, test.userInfo)
+
+	assert.False(t, result)
+	assert.Nil(t, err)
+}
+
+func TestLinksRepository_Exists_ExistsForCurrentUser_ReturnsTrue(t *testing.T) {
+	test := newLinksRepositoryTests()
+	t.Cleanup(test.close)
+	id, _ := uuid.NewV4()
+	testLink := Models.Link{Id: id}
+	_ = test.repo.Create(&testLink, test.userInfo)
+
+	result, err := test.repo.Exists(id, test.userInfo)
+
+	assert.True(t, result)
+	assert.Nil(t, err)
 }

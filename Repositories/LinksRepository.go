@@ -28,6 +28,21 @@ func (repo *LinksRepository) Create(link *Models.Link, userInfo *Models.UserInfo
 	return nil
 }
 
+func (repo *LinksRepository) Exists(id uuid.UUID, userInfo *Models.UserInfo) (bool, error) {
+	result, err := repo.connection.QueryRow("select count(*) from links where id = $1 and user_id = $2", id, userInfo.UserId)
+	if err != nil {
+		log.Warningf("Failed to count links: %s", err.Error())
+		return false, err
+	}
+	var linkCount int
+	err = result.Scan(&linkCount)
+	if err != nil {
+		log.Warningf("Failed to count links: %s", err.Error())
+		return false, err
+	}
+	return linkCount > 0, nil
+}
+
 func (repo *LinksRepository) Delete(id uuid.UUID, userInfo *Models.UserInfo) error {
 	result, err := repo.connection.Exec("delete from links where id = $1 and user_id = $2", id, userInfo.UserId)
 	if err != nil {

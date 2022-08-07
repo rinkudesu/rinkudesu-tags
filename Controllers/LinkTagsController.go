@@ -9,11 +9,13 @@ import (
 )
 
 type LinkTagsController struct {
-	repository *Repositories.LinkTagsRepository
+	repository      *Repositories.LinkTagsRepository
+	linksRepository *Repositories.LinksRepository
+	tagsRepository  *Repositories.TagsRepository
 }
 
-func NewLinkTagsController(repository *Repositories.LinkTagsRepository) *LinkTagsController {
-	return &LinkTagsController{repository: repository}
+func NewLinkTagsController(repository *Repositories.LinkTagsRepository, linksRepository *Repositories.LinksRepository, tagsRepository *Repositories.TagsRepository) *LinkTagsController {
+	return &LinkTagsController{repository: repository, linksRepository: linksRepository, tagsRepository: tagsRepository}
 }
 
 func (controller *LinkTagsController) Create(c *gin.Context) {
@@ -22,8 +24,18 @@ func (controller *LinkTagsController) Create(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	userInfo := GetUserInfo(c)
 
-	err = controller.repository.Create(&linkTag, GetUserInfo(c))
+	if linkExists, _ := controller.linksRepository.Exists(linkTag.LinkId, userInfo); !linkExists {
+		c.Status(http.StatusNotFound)
+		return
+	}
+	if tagExists, _ := controller.tagsRepository.Exists(linkTag.TagId, userInfo); !tagExists {
+		c.Status(http.StatusNotFound)
+		return
+	}
+
+	err = controller.repository.Create(&linkTag, userInfo)
 	if err != nil {
 		if err == Repositories.AlreadyExistsErr {
 			c.Status(http.StatusBadRequest)

@@ -101,6 +101,21 @@ func (repository *TagsRepository) Delete(id uuid.UUID, userInfo *Models.UserInfo
 	return err
 }
 
+func (repository *TagsRepository) Exists(id uuid.UUID, userInfo *Models.UserInfo) (bool, error) {
+	result, err := repository.connection.QueryRow("select count(*) from tags where id = $1 and user_id = $2", id, userInfo.UserId)
+	if err != nil {
+		log.Warningf("Failed to count tags: %s", err.Error())
+		return false, err
+	}
+	var tagCount int
+	err = result.Scan(&tagCount)
+	if err != nil {
+		log.Warningf("Failed to count tags: %s", err.Error())
+		return false, err
+	}
+	return tagCount > 0, nil
+}
+
 func (repository *TagsRepository) scanIntoTag(row Data.Row, id uuid.UUID) (*Models.Tag, error) {
 	var name string
 	err := row.Scan(&name)

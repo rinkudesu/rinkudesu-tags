@@ -295,3 +295,30 @@ func (test *tagsRepositoryTests) addTags(t *testing.T, tags []*Models.Tag) []uui
 	}
 	return ids
 }
+
+func TestTagsRepository_Exists_ExistsForDifferentUser_ReturnsFalse(t *testing.T) {
+	test := newTagsRepositoryTests()
+	t.Cleanup(test.close)
+	id, _ := uuid.NewV4()
+	testTag := Models.Tag{Id: id, Name: "test"}
+	anotherUserId, _ := uuid.NewV4()
+	anotherUserInfo := Models.UserInfo{UserId: anotherUserId}
+	_, _ = test.repo.Create(&testTag, &anotherUserInfo)
+
+	result, err := test.repo.Exists(id, test.userInfo)
+
+	assert.False(t, result)
+	assert.Nil(t, err)
+}
+
+func TestTagsRepository_Exists_ExistsForCurrentUser_ReturnsTrue(t *testing.T) {
+	test := newTagsRepositoryTests()
+	t.Cleanup(test.close)
+	testTag := Models.Tag{Name: "test"}
+	_, _ = test.repo.Create(&testTag, test.userInfo)
+
+	result, err := test.repo.Exists(testTag.Id, test.userInfo)
+
+	assert.True(t, result)
+	assert.Nil(t, err)
+}
