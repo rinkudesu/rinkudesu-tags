@@ -23,7 +23,7 @@ func (controller *LinkTagsController) Create(c *gin.Context) {
 		return
 	}
 
-	err = controller.repository.Create(&linkTag)
+	err = controller.repository.Create(&linkTag, GetUserInfo(c))
 	if err != nil {
 		if err == Repositories.AlreadyExistsErr {
 			c.Status(http.StatusBadRequest)
@@ -48,7 +48,7 @@ func (controller *LinkTagsController) Delete(c *gin.Context) {
 		return
 	}
 
-	err = controller.repository.Remove(linkId, tagId)
+	err = controller.repository.Remove(linkId, tagId, GetUserInfo(c))
 	if err != nil {
 		if err == Repositories.NotFoundErr {
 			c.Status(http.StatusNotFound)
@@ -67,7 +67,7 @@ func (controller *LinkTagsController) GetLinksForTag(c *gin.Context) {
 		return
 	}
 
-	result, err := controller.repository.GetLinksForTag(id)
+	result, err := controller.repository.GetLinksForTag(id, GetUserInfo(c))
 	if err != nil {
 		if err == Repositories.NotFoundErr {
 			c.Status(http.StatusNotFound)
@@ -86,7 +86,7 @@ func (controller *LinkTagsController) GetTagsForLink(c *gin.Context) {
 		return
 	}
 
-	result, err := controller.repository.GetTagsForLink(id)
+	result, err := controller.repository.GetTagsForLink(id, GetUserInfo(c))
 	if err != nil {
 		if err == Repositories.NotFoundErr {
 			c.Status(http.StatusNotFound)

@@ -72,10 +72,12 @@ func initialMigration(executor Executor) error {
 		"user_id UUID NOT NULL);" +
 		"" +
 		"CREATE TABLE links (" +
-		"id UUID PRIMARY KEY NOT NULL);" +
+		"id UUID PRIMARY KEY NOT NULL," +
+		"user_id UUID NOT NULL);" +
 		"" +
-		"CREATE TABLE link_tags (" +
+		"CREATE TABLE link_tags (" + //todo: There's no database-level check whether link and tag were created by the same user. That's not a problem for as long as user ids will never change.
 		"id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid()," +
+		"user_id UUID NOT NULL," +
 		"link_id UUID NOT NULL REFERENCES links(id) ON DELETE CASCADE," +
 		"tag_id UUID NOT NULL REFERENCES tags(id) ON DELETE CASCADE);" +
 		"" +

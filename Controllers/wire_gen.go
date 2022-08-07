@@ -21,8 +21,7 @@ func CreateLinksController(state *Services.GlobalState) *LinksController {
 }
 
 func CreateTagsController(state *Services.GlobalState) *TagsController {
-	tagQueryExecutable := Repositories.NewTagQueryExecutor(state)
-	tagsRepository := Repositories.NewTagsRepository(tagQueryExecutable)
+	tagsRepository := Repositories.NewTagsRepository(state)
 	tagsController := NewTagsController(tagsRepository)
 	return tagsController
 }

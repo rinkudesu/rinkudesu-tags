@@ -3,6 +3,6 @@ package Repositories
 import "errors"
 
 var (
-	AlreadyExistsErr = errors.New("tag with this name already exists")
+	AlreadyExistsErr = errors.New("this data already exists")
 	NotFoundErr      = errors.New("data was not found")
 )

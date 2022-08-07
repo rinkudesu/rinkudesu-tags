@@ -25,8 +25,8 @@ func GetDatabase() (Data.DbConnector, string) {
 	return database, dbName.String()
 }
 
-func DropDatabase(existingConnection *Data.DbConnector, dbName string) {
-	(*existingConnection).Close()
+func DropDatabase(existingConnection Data.DbConnector, dbName string) {
+	existingConnection.Close()
 	database := &Data.DbConnection{}
 	defer database.Close()
 	_ = database.Initialise(getBaseConnectionString() + "postgres")
