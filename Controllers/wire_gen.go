@@ -28,7 +28,9 @@ func CreateTagsController(state *Services.GlobalState) *TagsController {
 
 func CreateLinkTagsController(state *Services.GlobalState) *LinkTagsController {
 	linkTagsRepository := Repositories.NewLinkTagsRepository(state)
-	linkTagsController := NewLinkTagsController(linkTagsRepository)
+	linksRepository := Repositories.NewLinksRepository(state)
+	tagsRepository := Repositories.NewTagsRepository(state)
+	linkTagsController := NewLinkTagsController(linkTagsRepository, linksRepository, tagsRepository)
 	return linkTagsController
 }
 
@@ -37,5 +39,5 @@ func CreateLinkTagsController(state *Services.GlobalState) *LinkTagsController {
 var (
 	LinksControllerSet    = wire.NewSet(NewLinksController, Repositories.LinkRepositorySet)
 	TagsControllerSet     = wire.NewSet(NewTagsController, Repositories.TagsRepositorySet)
-	LinkTagsControllerSet = wire.NewSet(NewLinkTagsController, Repositories.LinkTagsRepositorySet)
+	LinkTagsControllerSet = wire.NewSet(NewLinkTagsController, Repositories.LinkTagsRepositorySet, Repositories.LinkRepositorySet, Repositories.TagsRepositorySet)
 )
