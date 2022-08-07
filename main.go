@@ -71,6 +71,7 @@ func setupRouter() {
 	router = gin.New()
 	router.Use(gin.Recovery())
 	router.Use(Services.GetGinLogger())
+	router.Use(Services.GetHealthcheck(Services.CreateHealthcheck(state)))
 	router.Use(Authorisation.GetGinAuthorisationFilter(jwtHandler, config))
 	err := router.SetTrustedProxies(config.TrustedProxies)
 	if err != nil {
