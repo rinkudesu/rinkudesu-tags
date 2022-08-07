@@ -7,6 +7,7 @@ import (
 	"github.com/gofrs/uuid"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"rinkudesu-tags/Models"
 )
 
 var (
@@ -53,18 +54,16 @@ func ParseUuid(id string) (uuid.UUID, error) {
 	return result, nil
 }
 
-func GetUserId(c *gin.Context) (uuid.UUID, error) {
+func GetUserInfo(c *gin.Context) *Models.UserInfo {
 	idValue, isPresent := c.Get("userId")
 	if !isPresent {
 		c.AbortWithStatus(http.StatusBadRequest)
-		log.Info("User id missing from context")
-		return uuid.Nil, ErrUserIdNotAvailable
+		log.Panic("User id missing from context")
 	}
 	id, ok := idValue.(uuid.UUID)
 	if !ok {
-		log.Warning("Unexpected type in gin context as user id")
 		c.AbortWithStatus(http.StatusBadRequest)
-		return uuid.Nil, ErrUserIdNotAvailable
+		log.Panic("Unexpected type in gin context as user id")
 	}
-	return id, nil
+	return &Models.UserInfo{UserId: id}
 }

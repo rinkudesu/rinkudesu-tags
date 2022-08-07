@@ -16,8 +16,9 @@ func NewLinkTagsRepository(state *Services.GlobalState) *LinkTagsRepository {
 	return &LinkTagsRepository{connection: state.DbConnection}
 }
 
-func (repo *LinkTagsRepository) Create(linkTag *Models.LinkTag) error {
-	createdIdRow, err := repo.connection.QueryRow("insert into link_tags (link_id, tag_id) values ($1, $2) returning id", linkTag.LinkId, linkTag.TagId)
+// Create a new link-tag association. The calling method is responsible for making sure that both entries exist and that the user is authorised to create it.
+func (repo *LinkTagsRepository) Create(linkTag *Models.LinkTag, userInfo *Models.UserInfo) error {
+	createdIdRow, err := repo.connection.QueryRow("insert into link_tags (link_id, tag_id, user_id) values ($1, $2, $3) returning id", linkTag.LinkId, linkTag.TagId, userInfo.UserId)
 	if err != nil {
 		log.Warningf("Failed to create linkTag: %s", err.Error())
 		return err
@@ -38,8 +39,8 @@ func (repo *LinkTagsRepository) Create(linkTag *Models.LinkTag) error {
 	return nil
 }
 
-func (repo *LinkTagsRepository) Remove(linkId uuid.UUID, tagId uuid.UUID) error {
-	result, err := repo.connection.Exec("delete from link_tags where link_id = $1 and tag_id = $2", linkId, tagId)
+func (repo *LinkTagsRepository) Remove(linkId uuid.UUID, tagId uuid.UUID, userInfo *Models.UserInfo) error {
+	result, err := repo.connection.Exec("delete from link_tags where link_id = $1 and tag_id = $2 and user_id = $3", linkId, tagId, userInfo.UserId)
 	if err != nil {
 		log.Warningf("Failed to delete link tag: %s", err.Error())
 		return err
@@ -50,8 +51,8 @@ func (repo *LinkTagsRepository) Remove(linkId uuid.UUID, tagId uuid.UUID) error 
 	return nil
 }
 
-func (repo *LinkTagsRepository) GetLinksForTag(tagId uuid.UUID) (*[]Models.Link, error) {
-	linkRows, err := repo.connection.QueryRows("select l.id from link_tags lt join links l on lt.link_id = l.id where lt.tag_id = $1", tagId)
+func (repo *LinkTagsRepository) GetLinksForTag(tagId uuid.UUID, userInfo *Models.UserInfo) (*[]Models.Link, error) {
+	linkRows, err := repo.connection.QueryRows("select l.id from link_tags lt join links l on lt.link_id = l.id where lt.tag_id = $1 and l.user_id = $2 and lt.user_id = $2", tagId, userInfo.UserId)
 	if err != nil {
 		log.Warningf("Failed to query for link_tags: %s", err.Error())
 		return nil, err
@@ -70,8 +71,8 @@ func (repo *LinkTagsRepository) GetLinksForTag(tagId uuid.UUID) (*[]Models.Link,
 	return &links, nil
 }
 
-func (repo *LinkTagsRepository) GetTagsForLink(linkId uuid.UUID) (*[]Models.Tag, error) {
-	tagRows, err := repo.connection.QueryRows("select t.id, t.name, t.user_id from link_tags lt join tags t on lt.tag_id = t.id where lt.link_id = $1", linkId)
+func (repo *LinkTagsRepository) GetTagsForLink(linkId uuid.UUID, userInfo *Models.UserInfo) (*[]Models.Tag, error) {
+	tagRows, err := repo.connection.QueryRows("select t.id, t.name from link_tags lt join tags t on lt.tag_id = t.id where lt.link_id = $1 and t.user_id = $2 and lt.user_id = $2", linkId, userInfo.UserId)
 	if err != nil {
 		log.Warningf("Failed to query for link_tags: %s", err.Error())
 		return nil, err
@@ -80,7 +81,7 @@ func (repo *LinkTagsRepository) GetTagsForLink(linkId uuid.UUID) (*[]Models.Tag,
 	tags := make([]Models.Tag, 0)
 	for tagRows.Next() {
 		newTag := Models.Tag{}
-		err = tagRows.Scan(&newTag.Id, &newTag.Name, &newTag.UserId)
+		err = tagRows.Scan(&newTag.Id, &newTag.Name)
 		if err != nil {
 			log.Warningf("Failed to scan link: %s", err.Error())
 			return nil, err

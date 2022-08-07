@@ -10,7 +10,7 @@ import (
 
 var (
 	LinkRepositorySet     = wire.NewSet(NewLinksRepository)
-	TagsRepositorySet     = wire.NewSet(NewTagsRepository, NewTagQueryExecutor)
+	TagsRepositorySet     = wire.NewSet(NewTagsRepository)
 	LinkTagsRepositorySet = wire.NewSet(NewLinkTagsRepository)
 )
 

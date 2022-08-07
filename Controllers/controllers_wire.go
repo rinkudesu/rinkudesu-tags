@@ -12,7 +12,7 @@ import (
 var (
 	LinksControllerSet    = wire.NewSet(NewLinksController, Repositories.LinkRepositorySet)
 	TagsControllerSet     = wire.NewSet(NewTagsController, Repositories.TagsRepositorySet)
-	LinkTagsControllerSet = wire.NewSet(NewLinkTagsController, Repositories.LinkTagsRepositorySet)
+	LinkTagsControllerSet = wire.NewSet(NewLinkTagsController, Repositories.LinkTagsRepositorySet, Repositories.LinkRepositorySet, Repositories.TagsRepositorySet)
 )
 
 func CreateLinksController(state *Services.GlobalState) *LinksController {

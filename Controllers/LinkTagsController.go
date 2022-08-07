@@ -9,11 +9,13 @@ import (
 )
 
 type LinkTagsController struct {
-	repository *Repositories.LinkTagsRepository
+	repository      *Repositories.LinkTagsRepository
+	linksRepository *Repositories.LinksRepository
+	tagsRepository  *Repositories.TagsRepository
 }
 
-func NewLinkTagsController(repository *Repositories.LinkTagsRepository) *LinkTagsController {
-	return &LinkTagsController{repository: repository}
+func NewLinkTagsController(repository *Repositories.LinkTagsRepository, linksRepository *Repositories.LinksRepository, tagsRepository *Repositories.TagsRepository) *LinkTagsController {
+	return &LinkTagsController{repository: repository, linksRepository: linksRepository, tagsRepository: tagsRepository}
 }
 
 func (controller *LinkTagsController) Create(c *gin.Context) {
@@ -22,8 +24,18 @@ func (controller *LinkTagsController) Create(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	userInfo := GetUserInfo(c)
 
-	err = controller.repository.Create(&linkTag)
+	if linkExists, _ := controller.linksRepository.Exists(linkTag.LinkId, userInfo); !linkExists {
+		c.Status(http.StatusNotFound)
+		return
+	}
+	if tagExists, _ := controller.tagsRepository.Exists(linkTag.TagId, userInfo); !tagExists {
+		c.Status(http.StatusNotFound)
+		return
+	}
+
+	err = controller.repository.Create(&linkTag, userInfo)
 	if err != nil {
 		if err == Repositories.AlreadyExistsErr {
 			c.Status(http.StatusBadRequest)
@@ -48,7 +60,7 @@ func (controller *LinkTagsController) Delete(c *gin.Context) {
 		return
 	}
 
-	err = controller.repository.Remove(linkId, tagId)
+	err = controller.repository.Remove(linkId, tagId, GetUserInfo(c))
 	if err != nil {
 		if err == Repositories.NotFoundErr {
 			c.Status(http.StatusNotFound)
@@ -67,7 +79,7 @@ func (controller *LinkTagsController) GetLinksForTag(c *gin.Context) {
 		return
 	}
 
-	result, err := controller.repository.GetLinksForTag(id)
+	result, err := controller.repository.GetLinksForTag(id, GetUserInfo(c))
 	if err != nil {
 		if err == Repositories.NotFoundErr {
 			c.Status(http.StatusNotFound)
@@ -86,7 +98,7 @@ func (controller *LinkTagsController) GetTagsForLink(c *gin.Context) {
 		return
 	}
 
-	result, err := controller.repository.GetTagsForLink(id)
+	result, err := controller.repository.GetTagsForLink(id, GetUserInfo(c))
 	if err != nil {
 		if err == Repositories.NotFoundErr {
 			c.Status(http.StatusNotFound)
