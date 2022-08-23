@@ -8,7 +8,7 @@ require (
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/google/wire v0.5.0
 	github.com/jackc/pgconn v1.10.1
-	github.com/jackc/pgtype v1.9.1
+	github.com/jackc/pgtype v1.12.0
 	github.com/jackc/pgx/v4 v4.14.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.7.1
