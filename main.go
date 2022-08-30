@@ -2,22 +2,27 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/rinkudesu/go-kafka/configuration"
+	"github.com/rinkudesu/go-kafka/subscriber"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"rinkudesu-tags/Authorisation"
 	"rinkudesu-tags/Controllers"
 	"rinkudesu-tags/Data"
 	"rinkudesu-tags/Data/Migrations"
+	"rinkudesu-tags/MessageHandlers"
 	"rinkudesu-tags/Models"
+	"rinkudesu-tags/Repositories"
 	"rinkudesu-tags/Services"
 )
 
 var (
-	routables  []Controllers.Routable
-	router     *gin.Engine
-	config     *Models.Configuration
-	state      *Services.GlobalState
-	jwtHandler *Authorisation.JWTHandler
+	routables   []Controllers.Routable
+	router      *gin.Engine
+	config      *Models.Configuration
+	state       *Services.GlobalState
+	jwtHandler  *Authorisation.JWTHandler
+	subscribers []subscriber.Subscriber
 )
 
 func init() {
@@ -34,8 +39,15 @@ func main() {
 	defer state.DbConnection.Close()
 	migrate(state.DbConnection)
 
+	setupMessageHandlers()
 	createControllers()
+	//this blocks until the server is turned off
 	setupRouter()
+
+	for _, runningSubscriber := range subscribers {
+		runningSubscriber.StopHandle()
+		_ = runningSubscriber.Close()
+	}
 }
 
 func makeGlobalState() {
@@ -85,4 +97,15 @@ func setupRouter() {
 	if err := router.Run(config.ListenAddress); err != nil {
 		log.Panicf("Server failed while listening: %s", err.Error())
 	}
+}
+
+func setupMessageHandlers() {
+	kafkaConfig, err := configuration.NewKafkaConfigurationFromEnv()
+	if err != nil {
+		log.Fatalf("Failed to read kafka config from env")
+	}
+	linkDeleteSubscriber, _ := subscriber.NewKafkaSubscriber(kafkaConfig)
+	_ = linkDeleteSubscriber.Subscribe(MessageHandlers.NewLinkDeletedHandler(Repositories.CreateLinksRepository(state)))
+	_ = linkDeleteSubscriber.BeginHandle()
+	subscribers = []subscriber.Subscriber{linkDeleteSubscriber}
 }

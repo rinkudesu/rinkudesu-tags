@@ -55,3 +55,16 @@ func (repo *LinksRepository) Delete(id uuid.UUID, userInfo *Models.UserInfo) err
 	}
 	return nil
 }
+
+func (repo *LinksRepository) DeleteForce(id uuid.UUID) error {
+	result, err := repo.connection.Exec("delete from links where id = $1", id)
+	if err != nil {
+		log.Warningf("Failed to delete link: %s", err.Error())
+		return err
+	}
+	if result.RowsAffected() <= 0 {
+		log.Info("Link to delete was not found")
+		return NotFoundErr
+	}
+	return nil
+}
