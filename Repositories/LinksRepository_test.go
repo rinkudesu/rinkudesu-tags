@@ -178,3 +178,37 @@ func TestLinksRepository_DeleteForce_LinkDoesntExist(t *testing.T) {
 	linksRows, _ := test.connection.QueryRows("select * from links")
 	assert.False(t, linksRows.Next())
 }
+
+func TestLinksRepository_DeleteForUser_NoneExistForUser(t *testing.T) {
+	test := newLinksRepositoryTests()
+	t.Cleanup(func() {
+		Mocks.DropDatabase(test.connection, test.dbName)
+	})
+	id, _ := uuid.NewV4()
+	testLink := Models.Link{Id: id}
+	anotherUserId, _ := uuid.NewV4()
+	anotherUserInfo := Models.UserInfo{UserId: anotherUserId}
+	_ = test.repo.Create(&testLink, &anotherUserInfo)
+
+	err := test.repo.DeleteForUser(test.userInfo.UserId)
+
+	assert.Nil(t, err)
+	exists, _ := test.repo.Exists(id, &anotherUserInfo)
+	assert.True(t, exists)
+}
+
+func TestLinksRepository_DeleteForUser_ExistsForUser(t *testing.T) {
+	test := newLinksRepositoryTests()
+	t.Cleanup(func() {
+		Mocks.DropDatabase(test.connection, test.dbName)
+	})
+	id, _ := uuid.NewV4()
+	testLink := Models.Link{Id: id}
+	_ = test.repo.Create(&testLink, test.userInfo)
+
+	err := test.repo.DeleteForUser(test.userInfo.UserId)
+
+	assert.Nil(t, err)
+	exists, _ := test.repo.Exists(id, test.userInfo)
+	assert.False(t, exists)
+}

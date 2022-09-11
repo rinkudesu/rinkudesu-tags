@@ -263,3 +263,45 @@ func TestLinkTagsRepository_GetTagsForLink_TagsArrayReturned(t *testing.T) {
 		assert.Contains(t, *tags, tag)
 	}
 }
+
+func TestLinkTagsRepository_RemoveAllOfUser_NoneExistForUser(t *testing.T) {
+	test := newLinkTagsRepositoryTests()
+	t.Cleanup(test.close)
+	id, _ := uuid.NewV4()
+	anotherUserId, _ := uuid.NewV4()
+	anotherUserInfo := Models.UserInfo{UserId: anotherUserId}
+	link := Models.Link{Id: id}
+	tag := Models.Tag{
+		Name: "test",
+	}
+	_ = test.linkRepo.Create(&link, test.userInfo)
+	_, _ = test.tagRepo.Create(&tag, test.userInfo)
+	linkTag := Models.LinkTag{LinkId: link.Id, TagId: tag.Id}
+	_ = test.repo.Create(&linkTag, test.userInfo)
+
+	err := test.repo.RemoveAllOfUser(anotherUserInfo.UserId)
+
+	assert.Nil(t, err)
+	existing, _ := test.repo.GetTagsForLink(link.Id, test.userInfo)
+	assert.NotEmpty(t, existing)
+}
+
+func TestLinkTagsRepository_RemoveAllOfUser_ExistForUser(t *testing.T) {
+	test := newLinkTagsRepositoryTests()
+	t.Cleanup(test.close)
+	id, _ := uuid.NewV4()
+	link := Models.Link{Id: id}
+	tag := Models.Tag{
+		Name: "test",
+	}
+	_ = test.linkRepo.Create(&link, test.userInfo)
+	_, _ = test.tagRepo.Create(&tag, test.userInfo)
+	linkTag := Models.LinkTag{LinkId: link.Id, TagId: tag.Id}
+	_ = test.repo.Create(&linkTag, test.userInfo)
+
+	err := test.repo.RemoveAllOfUser(test.userInfo.UserId)
+
+	assert.Nil(t, err)
+	existing, _ := test.repo.GetTagsForLink(link.Id, test.userInfo)
+	assert.Empty(t, existing)
+}

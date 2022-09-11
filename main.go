@@ -104,8 +104,14 @@ func setupMessageHandlers() {
 	if err != nil {
 		log.Fatalf("Failed to read kafka config from env")
 	}
+
 	linkDeleteSubscriber, _ := subscriber.NewKafkaSubscriber(kafkaConfig)
 	_ = linkDeleteSubscriber.Subscribe(MessageHandlers.NewLinkDeletedHandler(Repositories.CreateLinksRepository(state)))
 	_ = linkDeleteSubscriber.BeginHandle()
-	subscribers = []subscriber.Subscriber{linkDeleteSubscriber}
+
+	userDeleteSubscriber, _ := subscriber.NewKafkaSubscriber(kafkaConfig)
+	_ = userDeleteSubscriber.Subscribe(MessageHandlers.CreateUserDeletedHandler(state))
+	_ = userDeleteSubscriber.BeginHandle()
+
+	subscribers = []subscriber.Subscriber{linkDeleteSubscriber, userDeleteSubscriber}
 }

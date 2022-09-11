@@ -101,6 +101,15 @@ func (repository *TagsRepository) Delete(id uuid.UUID, userInfo *Models.UserInfo
 	return err
 }
 
+func (repository *TagsRepository) DeleteAllOfUser(userId uuid.UUID) error {
+	_, err := repository.connection.Exec("delete from tags where user_id = $1", userId)
+	if err != nil {
+		log.Warningf("Failed to delete all tags for user: %s", err.Error())
+		return err
+	}
+	return nil
+}
+
 func (repository *TagsRepository) Exists(id uuid.UUID, userInfo *Models.UserInfo) (bool, error) {
 	result, err := repository.connection.QueryRow("select count(*) from tags where id = $1 and user_id = $2", id, userInfo.UserId)
 	if err != nil {

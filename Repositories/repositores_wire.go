@@ -12,6 +12,8 @@ var (
 	LinkRepositorySet     = wire.NewSet(NewLinksRepository)
 	TagsRepositorySet     = wire.NewSet(NewTagsRepository)
 	LinkTagsRepositorySet = wire.NewSet(NewLinkTagsRepository)
+
+	AllRepositoriesSet = wire.NewSet(LinkRepositorySet, TagsRepositorySet, LinkTagsRepositorySet)
 )
 
 func CreateLinksRepository(state *Services.GlobalState) *LinksRepository {
