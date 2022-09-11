@@ -322,3 +322,33 @@ func TestTagsRepository_Exists_ExistsForCurrentUser_ReturnsTrue(t *testing.T) {
 	assert.True(t, result)
 	assert.Nil(t, err)
 }
+
+func TestTagsRepository_DeleteAllOfUser_NoneExistForUser(t *testing.T) {
+	test := newTagsRepositoryTests()
+	t.Cleanup(test.close)
+	id, _ := uuid.NewV4()
+	testTag := Models.Tag{Id: id, Name: "test"}
+	anotherUserId, _ := uuid.NewV4()
+	anotherUserInfo := Models.UserInfo{UserId: anotherUserId}
+	_, _ = test.repo.Create(&testTag, &anotherUserInfo)
+
+	err := test.repo.DeleteAllOfUser(test.userInfo.UserId)
+
+	assert.Nil(t, err)
+	existingLinks, _ := test.repo.GetTags(&anotherUserInfo)
+	assert.NotEmpty(t, existingLinks)
+}
+
+func TestTagsRepository_DeleteAllOfUser_ExistForUser(t *testing.T) {
+	test := newTagsRepositoryTests()
+	t.Cleanup(test.close)
+	id, _ := uuid.NewV4()
+	testTag := Models.Tag{Id: id, Name: "test"}
+	_, _ = test.repo.Create(&testTag, test.userInfo)
+
+	err := test.repo.DeleteAllOfUser(test.userInfo.UserId)
+
+	assert.Nil(t, err)
+	existingLinks, _ := test.repo.GetTags(test.userInfo)
+	assert.Empty(t, existingLinks)
+}

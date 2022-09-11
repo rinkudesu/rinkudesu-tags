@@ -51,6 +51,15 @@ func (repo *LinkTagsRepository) Remove(linkId uuid.UUID, tagId uuid.UUID, userIn
 	return nil
 }
 
+func (repo *LinkTagsRepository) RemoveAllOfUser(userId uuid.UUID) error {
+	_, err := repo.connection.Exec("delete from link_tags where user_id = $1", userId)
+	if err != nil {
+		log.Warningf("Failed to delete linktags for user: %s", err.Error())
+		return err
+	}
+	return nil
+}
+
 func (repo *LinkTagsRepository) GetLinksForTag(tagId uuid.UUID, userInfo *Models.UserInfo) (*[]Models.Link, error) {
 	linkRows, err := repo.connection.QueryRows("select l.id from link_tags lt join links l on lt.link_id = l.id where lt.tag_id = $1 and l.user_id = $2 and lt.user_id = $2", tagId, userInfo.UserId)
 	if err != nil {

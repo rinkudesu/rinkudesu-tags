@@ -68,3 +68,12 @@ func (repo *LinksRepository) DeleteForce(id uuid.UUID) error {
 	}
 	return nil
 }
+
+func (repo *LinksRepository) DeleteForUser(userId uuid.UUID) error {
+	_, err := repo.connection.Exec("delete from links where user_id = $1", userId)
+	if err != nil {
+		log.Warningf("Failed to delete links for user: %s", err.Error())
+		return err
+	}
+	return nil
+}
