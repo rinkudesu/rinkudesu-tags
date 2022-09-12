@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/coreos/go-oidc/v3 v3.4.0
 	github.com/gin-gonic/gin v1.8.1
-	github.com/gofrs/uuid v4.2.0+incompatible
+	github.com/gofrs/uuid v4.3.0+incompatible
 	github.com/google/wire v0.5.0
 	github.com/jackc/pgconn v1.13.0
 	github.com/jackc/pgtype v1.12.0
