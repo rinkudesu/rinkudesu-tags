@@ -45,5 +45,5 @@ func (handler *UserDeletedHandler) parseMessage(message []byte) *UserDeletedMess
 }
 
 func (handler *UserDeletedHandler) GetTopic() string {
-	return LinkDeletedTopic
+	return UserDeletedTopic
 }
