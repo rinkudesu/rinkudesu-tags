@@ -26,10 +26,13 @@ func (controller *LinkTagsController) Create(c *gin.Context) {
 	}
 	userInfo := GetUserInfo(c)
 
-	if linkExists, _ := controller.linksRepository.Exists(linkTag.LinkId, userInfo); !linkExists {
-		c.Status(http.StatusNotFound)
+	// ignore duplicate values errors, since they just mean required data is already available
+	if err = controller.linksRepository.Create(&Models.Link{Id: linkTag.LinkId}, userInfo); err != nil && !Repositories.IsPostgresDuplicateValue(err) {
+		c.Status(http.StatusInternalServerError)
 		return
 	}
+	// to create a link-tag the tag must already exist, since we utilise the id here
+	// if the tag no longer exists, then assume it was deleted and return error
 	if tagExists, _ := controller.tagsRepository.Exists(linkTag.TagId, userInfo); !tagExists {
 		c.Status(http.StatusNotFound)
 		return
