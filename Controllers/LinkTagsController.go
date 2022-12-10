@@ -27,7 +27,7 @@ func (controller *LinkTagsController) Create(c *gin.Context) {
 	userInfo := GetUserInfo(c)
 
 	// ignore duplicate values errors, since they just mean required data is already available
-	if err = controller.linksRepository.Create(&Models.Link{Id: linkTag.LinkId}, userInfo); err != nil && !Repositories.IsPostgresDuplicateValue(err) {
+	if err = controller.linksRepository.Create(&Models.Link{Id: linkTag.LinkId}, userInfo); err != Repositories.AlreadyExistsErr {
 		c.Status(http.StatusInternalServerError)
 		return
 	}
