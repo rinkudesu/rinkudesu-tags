@@ -49,7 +49,7 @@ func (controller *TagsController) CreateTag(c *gin.Context) {
 	var tagVm models.TagCreateViewModel
 	err := BindJson(c, &tagVm)
 	if err != nil {
-		log.Info("Log object is not valid: %s", err.Error())
+		log.Infof("Log object is not valid: %s", err.Error())
 		return
 	}
 
@@ -66,7 +66,7 @@ func (controller *TagsController) UpdateTag(c *gin.Context) {
 	var tag models.Tag
 	err := BindJson(c, &tag)
 	if err != nil {
-		log.Info("Log object is not valid: %s", err.Error())
+		log.Infof("Log object is not valid: %s", err.Error())
 		return
 	}
 
