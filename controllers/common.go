@@ -27,31 +27,17 @@ func BindJson(c *gin.Context, obj any) error {
 	return err
 }
 
-func ParseUuidFromParam(paramName string, c *gin.Context) (uuid.UUID, error) {
-	id := c.Param(paramName)
-	parsed, err := ParseUuid(id)
-	if err != nil {
-		c.Status(http.StatusBadRequest)
-	}
-	return parsed, err
+type id struct {
+	Id string `form:"id" uri:"id" binding:"required,uuid"`
 }
 
-func ParseUuidFromQuery(paramName string, c *gin.Context) (uuid.UUID, error) {
-	id := c.Query(paramName)
-	parsed, err := ParseUuid(id)
+func ParseUuidFromParam(c *gin.Context) (uuid.UUID, error) {
+	var id id
+	err := c.BindUri(&id)
 	if err != nil {
-		c.Status(http.StatusBadRequest)
-	}
-	return parsed, err
-}
-
-func ParseUuid(id string) (uuid.UUID, error) {
-	result, err := uuid.FromString(id)
-	if err != nil {
-		log.Infof("Unable to parse '%s' as uuid", id)
 		return uuid.Nil, err
 	}
-	return result, nil
+	return uuid.FromString(id.Id)
 }
 
 func GetUserInfo(c *gin.Context) *models.UserInfo {
@@ -66,4 +52,16 @@ func GetUserInfo(c *gin.Context) *models.UserInfo {
 		log.Panic("Unexpected type in gin context as user id")
 	}
 	return &models.UserInfo{UserId: id}
+}
+
+func ParseUuids(unparsed []string) ([]uuid.UUID, error) {
+	parsed := make([]uuid.UUID, len(unparsed))
+	for i, s := range unparsed {
+		temp, err := uuid.FromString(s)
+		if err != nil {
+			return nil, err
+		}
+		parsed[i] = temp
+	}
+	return parsed, nil
 }

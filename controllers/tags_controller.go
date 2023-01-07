@@ -27,7 +27,7 @@ func (controller *TagsController) GetTags(c *gin.Context) {
 }
 
 func (controller *TagsController) GetTag(c *gin.Context) {
-	tagUuid, err := ParseUuidFromParam("id", c)
+	tagUuid, err := ParseUuidFromParam(c)
 	if err != nil {
 		return
 	}
@@ -93,7 +93,7 @@ func (controller *TagsController) UpdateTag(c *gin.Context) {
 }
 
 func (controller *TagsController) DeleteTag(c *gin.Context) {
-	uuidValue, err := ParseUuidFromParam("id", c)
+	uuidValue, err := ParseUuidFromParam(c)
 	if err != nil {
 		return
 	}
