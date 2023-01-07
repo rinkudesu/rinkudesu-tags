@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"rinkudesu-tags/models"
 	"rinkudesu-tags/repositories"
@@ -20,6 +21,7 @@ func (controller *LinksController) CreateLink(c *gin.Context) {
 	var link models.Link
 	err := BindJson(c, &link)
 	if err != nil {
+		log.Infof("Link model is invalid: %s", err.Error())
 		return
 	}
 

@@ -46,18 +46,14 @@ func (controller *TagsController) GetTag(c *gin.Context) {
 }
 
 func (controller *TagsController) CreateTag(c *gin.Context) {
-	var tag models.Tag
-	err := BindJson(c, &tag)
+	var tagVm models.TagCreateViewModel
+	err := BindJson(c, &tagVm)
 	if err != nil {
+		log.Infof("Log object is not valid: %s", err.Error())
 		return
 	}
 
-	if !tag.IsValid() {
-		log.Info("Log object is not valid")
-		c.Status(http.StatusBadRequest)
-		return
-	}
-
+	tag := tagVm.GetTag()
 	returnedTag, err := controller.repository.Create(&tag, GetUserInfo(c))
 	if err != nil {
 		c.Status(http.StatusBadRequest)
@@ -70,12 +66,7 @@ func (controller *TagsController) UpdateTag(c *gin.Context) {
 	var tag models.Tag
 	err := BindJson(c, &tag)
 	if err != nil {
-		return
-	}
-
-	if !tag.IsValid() {
-		log.Info("Log object is not valid")
-		c.Status(http.StatusBadRequest)
+		log.Infof("Log object is not valid: %s", err.Error())
 		return
 	}
 
