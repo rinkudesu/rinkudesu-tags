@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"rinkudesu-tags/models"
 	"rinkudesu-tags/repositories"
@@ -22,6 +23,7 @@ func (controller *LinkTagsController) Create(c *gin.Context) {
 	var linkTag models.LinkTag
 	err := BindJson(c, &linkTag)
 	if err != nil {
+		log.Infof("LinkTag model is invalid: %s", err.Error())
 		return
 	}
 	userInfo := GetUserInfo(c)
