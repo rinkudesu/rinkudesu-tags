@@ -37,7 +37,7 @@ func (controller *LinksController) CreateLink(c *gin.Context) {
 }
 
 func (controller *LinksController) DeleteLink(c *gin.Context) {
-	linkUuid, err := ParseUuidFromParam("id", c)
+	linkUuid, err := ParseUuidFromParam(c)
 	if err != nil {
 		return
 	}

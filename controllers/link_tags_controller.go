@@ -54,16 +54,21 @@ func (controller *LinkTagsController) Create(c *gin.Context) {
 }
 
 func (controller *LinkTagsController) Delete(c *gin.Context) {
-	linkId, err := ParseUuidFromQuery("linkId", c)
-	if err != nil {
-		return
+	var ids struct {
+		LinkId string `form:"linkId" binding:"required,uuid"`
+		TagId  string `form:"tagId" binding:"required,uuid"`
 	}
-	tagId, err := ParseUuidFromQuery("tagId", c)
+	err := c.BindQuery(&ids)
 	if err != nil {
 		return
 	}
 
-	err = controller.repository.Remove(linkId, tagId, GetUserInfo(c))
+	parsedIds, err := ParseUuids([]string{ids.LinkId, ids.TagId})
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	err = controller.repository.Remove(parsedIds[0], parsedIds[1], GetUserInfo(c))
 	if err != nil {
 		if err == repositories.NotFoundErr {
 			c.Status(http.StatusNotFound)
@@ -77,7 +82,7 @@ func (controller *LinkTagsController) Delete(c *gin.Context) {
 }
 
 func (controller *LinkTagsController) GetLinksForTag(c *gin.Context) {
-	id, err := ParseUuidFromParam("id", c)
+	id, err := ParseUuidFromParam(c)
 	if err != nil {
 		return
 	}
@@ -96,7 +101,7 @@ func (controller *LinkTagsController) GetLinksForTag(c *gin.Context) {
 }
 
 func (controller *LinkTagsController) GetTagsForLink(c *gin.Context) {
-	id, err := ParseUuidFromParam("id", c)
+	id, err := ParseUuidFromParam(c)
 	if err != nil {
 		return
 	}
