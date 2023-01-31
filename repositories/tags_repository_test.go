@@ -35,6 +35,7 @@ func (test *tagsRepositoryTests) close() {
 
 func TestTagQueryExecutor_GetAll_TagsPresent(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	tags := []*models.Tag{
 		{Name: "tag 1"},
@@ -55,6 +56,7 @@ func TestTagQueryExecutor_GetAll_TagsPresent(t *testing.T) {
 
 func TestTagQueryExecutor_GetAll_TagsCreatedByAnotherUser_ReturnsEmptySlice(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	tags := []*models.Tag{
 		{Name: "tag 1"},
@@ -73,6 +75,7 @@ func TestTagQueryExecutor_GetAll_TagsCreatedByAnotherUser_ReturnsEmptySlice(t *t
 
 func TestTagQueryExecutor_GetAll_NoTagsReturnsEmpty(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 
 	result, err := test.repo.GetTags(test.userInfo)
@@ -84,6 +87,7 @@ func TestTagQueryExecutor_GetAll_NoTagsReturnsEmpty(t *testing.T) {
 
 func TestTagsRepository_GetTag_Found(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	tag := models.Tag{Name: "test"}
 	tagId := test.addTag(t, &tag)
@@ -98,6 +102,7 @@ func TestTagsRepository_GetTag_Found(t *testing.T) {
 
 func TestTagsRepository_GetTag_CreatedByAnotherUser_NotFound(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	tag := models.Tag{Name: "test"}
 	tagId := test.addTag(t, &tag)
@@ -113,6 +118,7 @@ func TestTagsRepository_GetTag_CreatedByAnotherUser_NotFound(t *testing.T) {
 
 func TestTagsRepository_GetTag_NotFound(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	id, _ := uuid.NewV4()
 
@@ -125,6 +131,7 @@ func TestTagsRepository_GetTag_NotFound(t *testing.T) {
 
 func TestTagsRepository_Create_Creates(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	tag := models.Tag{Name: "test"}
 
@@ -137,6 +144,7 @@ func TestTagsRepository_Create_Creates(t *testing.T) {
 
 func TestTagsRepository_Create_DuplicateName(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	tag := models.Tag{Name: "test"}
 	_, _ = test.repo.Create(&tag, test.userInfo)
@@ -152,6 +160,7 @@ func TestTagsRepository_Create_DuplicateName(t *testing.T) {
 
 func TestTagsRepository_Create_NameUserByAnotherUser_CreatedAnyway(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	tag := models.Tag{Name: "test"}
 	_, _ = test.repo.Create(&tag, test.userInfo)
@@ -167,6 +176,7 @@ func TestTagsRepository_Create_NameUserByAnotherUser_CreatedAnyway(t *testing.T)
 
 func TestTagsRepository_Update_TagExists(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	tag := models.Tag{Name: "test"}
 	_, _ = test.repo.Create(&tag, test.userInfo)
@@ -182,6 +192,7 @@ func TestTagsRepository_Update_TagExists(t *testing.T) {
 
 func TestTagsRepository_Update_NameAlreadyExists(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	tag := models.Tag{Name: "test"}
 	tag2 := models.Tag{Name: "new name"}
@@ -200,6 +211,7 @@ func TestTagsRepository_Update_NameAlreadyExists(t *testing.T) {
 
 func TestTagsRepository_Update_TagNotFound(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	tag := models.Tag{Name: "test"}
 
@@ -214,6 +226,7 @@ func TestTagsRepository_Update_TagNotFound(t *testing.T) {
 
 func TestTagsRepository_Update_TagCreatedByAnotherUser_NotFound(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	tag := models.Tag{Name: "test"}
 	_, _ = test.repo.Create(&tag, test.userInfo)
@@ -232,6 +245,7 @@ func TestTagsRepository_Update_TagCreatedByAnotherUser_NotFound(t *testing.T) {
 
 func TestTagsRepository_Delete_Deletes(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	tag := models.Tag{Name: "test"}
 	_, _ = test.repo.Create(&tag, test.userInfo)
@@ -245,6 +259,7 @@ func TestTagsRepository_Delete_Deletes(t *testing.T) {
 
 func TestTagsRepository_Delete_NotFound(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	userId, _ := uuid.NewV4()
 
@@ -258,6 +273,7 @@ func TestTagsRepository_Delete_NotFound(t *testing.T) {
 
 func TestTagsRepository_Delete_CreatedByAnotherUser_NotFound(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	tag := models.Tag{Name: "test"}
 	_, _ = test.repo.Create(&tag, test.userInfo)
@@ -298,6 +314,7 @@ func (test *tagsRepositoryTests) addTags(t *testing.T, tags []*models.Tag) []uui
 
 func TestTagsRepository_Exists_ExistsForDifferentUser_ReturnsFalse(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	id, _ := uuid.NewV4()
 	testTag := models.Tag{Id: id, Name: "test"}
@@ -313,6 +330,7 @@ func TestTagsRepository_Exists_ExistsForDifferentUser_ReturnsFalse(t *testing.T)
 
 func TestTagsRepository_Exists_ExistsForCurrentUser_ReturnsTrue(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	testTag := models.Tag{Name: "test"}
 	_, _ = test.repo.Create(&testTag, test.userInfo)
@@ -325,6 +343,7 @@ func TestTagsRepository_Exists_ExistsForCurrentUser_ReturnsTrue(t *testing.T) {
 
 func TestTagsRepository_DeleteAllOfUser_NoneExistForUser(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	id, _ := uuid.NewV4()
 	testTag := models.Tag{Id: id, Name: "test"}
