@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"github.com/gofrs/uuid"
+	"github.com/rinkudesu/curry"
 	log "github.com/sirupsen/logrus"
 	"rinkudesu-tags/data"
 	"rinkudesu-tags/models"
@@ -17,7 +18,13 @@ func NewTagsRepository(state *services.GlobalState) *TagsRepository {
 }
 
 func (repository *TagsRepository) GetTags(userInfo *models.UserInfo) ([]*models.Tag, error) {
-	rows, err := repository.connection.QueryRows("select id, name from tags where user_id = $1", userInfo.UserId)
+	query := curry.Select("id, name", "tags", "").Where(curry.WhereBegin(curry.NewWhereItem("user_id", "=", curry.NewParameter(userInfo.UserId))))
+	sql, parameters, err := query.ToExecutable()
+	if err != nil {
+		log.Warnf("Failed to generate sql query: %s", err.Error())
+	}
+
+	rows, err := repository.connection.QueryRows(sql, parameters...)
 	defer rows.Close()
 	if err != nil {
 		log.Warningf("Failed to query for all tags: %s", err.Error())
