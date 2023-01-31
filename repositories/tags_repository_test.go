@@ -33,7 +33,7 @@ func (test *tagsRepositoryTests) close() {
 	mocks.DropDatabase(test.database, test.dbName)
 }
 
-func TestTagQueryExecutor_GetAll_TagsPresent(t *testing.T) {
+func TestTagsRepository_GetAll_TagsPresent(t *testing.T) {
 	test := newTagsRepositoryTests()
 	t.Parallel()
 	t.Cleanup(test.close)
@@ -44,7 +44,7 @@ func TestTagQueryExecutor_GetAll_TagsPresent(t *testing.T) {
 	}
 	tagIds := test.addTags(t, tags)
 
-	result, err := test.repo.GetTags(test.userInfo)
+	result, err := test.repo.GetTags(test.userInfo, "")
 
 	assert.Nil(t, err)
 	assert.Equal(t, 3, len(result))
@@ -54,7 +54,7 @@ func TestTagQueryExecutor_GetAll_TagsPresent(t *testing.T) {
 	}
 }
 
-func TestTagQueryExecutor_GetAll_TagsCreatedByAnotherUser_ReturnsEmptySlice(t *testing.T) {
+func TestTagsRepository_GetAll_TagsCreatedByAnotherUser_ReturnsEmptySlice(t *testing.T) {
 	test := newTagsRepositoryTests()
 	t.Parallel()
 	t.Cleanup(test.close)
@@ -67,18 +67,18 @@ func TestTagQueryExecutor_GetAll_TagsCreatedByAnotherUser_ReturnsEmptySlice(t *t
 	anotherUserId, _ := uuid.NewV4()
 	anotherUserInfo := models.UserInfo{UserId: anotherUserId}
 
-	result, err := test.repo.GetTags(&anotherUserInfo)
+	result, err := test.repo.GetTags(&anotherUserInfo, "")
 
 	assert.Nil(t, err)
 	assert.Empty(t, result)
 }
 
-func TestTagQueryExecutor_GetAll_NoTagsReturnsEmpty(t *testing.T) {
+func TestTagsRepository_GetAll_NoTagsReturnsEmpty(t *testing.T) {
 	test := newTagsRepositoryTests()
 	t.Parallel()
 	t.Cleanup(test.close)
 
-	result, err := test.repo.GetTags(test.userInfo)
+	result, err := test.repo.GetTags(test.userInfo, "")
 
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
@@ -154,7 +154,7 @@ func TestTagsRepository_Create_DuplicateName(t *testing.T) {
 	assert.Nil(t, result)
 	assert.NotNil(t, err)
 	assert.Equal(t, AlreadyExistsErr, err)
-	tags, _ := test.repo.GetTags(test.userInfo)
+	tags, _ := test.repo.GetTags(test.userInfo, "")
 	assert.Equal(t, 1, len(tags))
 }
 
@@ -220,7 +220,7 @@ func TestTagsRepository_Update_TagNotFound(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, NotFoundErr, err)
 	assert.Nil(t, result)
-	loadedTags, _ := test.repo.GetTags(test.userInfo)
+	loadedTags, _ := test.repo.GetTags(test.userInfo, "")
 	assert.Empty(t, loadedTags)
 }
 
@@ -239,7 +239,7 @@ func TestTagsRepository_Update_TagCreatedByAnotherUser_NotFound(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, NotFoundErr, err)
 	assert.Nil(t, result)
-	loadedTags, _ := test.repo.GetTags(test.userInfo)
+	loadedTags, _ := test.repo.GetTags(test.userInfo, "")
 	assert.Equal(t, "test", loadedTags[0].Name)
 }
 
@@ -253,7 +253,7 @@ func TestTagsRepository_Delete_Deletes(t *testing.T) {
 	err := test.repo.Delete(tag.Id, test.userInfo)
 
 	assert.Nil(t, err)
-	tags, _ := test.repo.GetTags(test.userInfo)
+	tags, _ := test.repo.GetTags(test.userInfo, "")
 	assert.Empty(t, tags)
 }
 
@@ -267,7 +267,7 @@ func TestTagsRepository_Delete_NotFound(t *testing.T) {
 
 	assert.NotNil(t, err)
 	assert.Equal(t, NotFoundErr, err)
-	tags, _ := test.repo.GetTags(test.userInfo)
+	tags, _ := test.repo.GetTags(test.userInfo, "")
 	assert.Empty(t, tags)
 }
 
@@ -354,12 +354,13 @@ func TestTagsRepository_DeleteAllOfUser_NoneExistForUser(t *testing.T) {
 	err := test.repo.DeleteAllOfUser(test.userInfo.UserId)
 
 	assert.Nil(t, err)
-	existingLinks, _ := test.repo.GetTags(&anotherUserInfo)
+	existingLinks, _ := test.repo.GetTags(&anotherUserInfo, "")
 	assert.NotEmpty(t, existingLinks)
 }
 
 func TestTagsRepository_DeleteAllOfUser_ExistForUser(t *testing.T) {
 	test := newTagsRepositoryTests()
+	t.Parallel()
 	t.Cleanup(test.close)
 	id, _ := uuid.NewV4()
 	testTag := models.Tag{Id: id, Name: "test"}
@@ -368,6 +369,35 @@ func TestTagsRepository_DeleteAllOfUser_ExistForUser(t *testing.T) {
 	err := test.repo.DeleteAllOfUser(test.userInfo.UserId)
 
 	assert.Nil(t, err)
-	existingLinks, _ := test.repo.GetTags(test.userInfo)
+	existingLinks, _ := test.repo.GetTags(test.userInfo, "")
 	assert.Empty(t, existingLinks)
+}
+
+func TestTagsRepository_GetAllWithNameFilter_ReturnsMatchingOnly(t *testing.T) {
+	test := newTagsRepositoryTests()
+	t.Parallel()
+	t.Cleanup(test.close)
+	tags := []*models.Tag{
+		{Name: "tag 1"},
+		{Name: "tag 2"},
+		{Name: "tag 3"},
+		{Name: "1 tag"},
+		{Name: "2 tag"},
+		{Name: "2 tag 3"},
+		{Name: "ugabuga"},
+		{Name: "hello"},
+	}
+	tagIds := test.addTags(t, tags)
+
+	result, err := test.repo.GetTags(test.userInfo, "tag")
+
+	assert.Nil(t, err)
+	assert.Equal(t, 6, len(result))
+	for i := 0; i < 6; i++ {
+		assert.Contains(t, tagIds, result[i].Id)
+		assert.True(t, test.containsTag(tags[i], result))
+	}
+	for i := 7; i < 8; i++ {
+		assert.False(t, test.containsTag(tags[i], result))
+	}
 }

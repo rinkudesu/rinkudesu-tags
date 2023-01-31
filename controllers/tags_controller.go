@@ -17,7 +17,7 @@ func NewTagsController(repository *repositories.TagsRepository) *TagsController 
 }
 
 func (controller *TagsController) GetTags(c *gin.Context) {
-	tags, err := controller.repository.GetTags(GetUserInfo(c))
+	tags, err := controller.repository.GetTags(GetUserInfo(c), "")
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return

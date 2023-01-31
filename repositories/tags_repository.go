@@ -1,12 +1,14 @@
 package repositories
 
 import (
+	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/rinkudesu/curry"
 	log "github.com/sirupsen/logrus"
 	"rinkudesu-tags/data"
 	"rinkudesu-tags/models"
 	"rinkudesu-tags/services"
+	"strings"
 )
 
 type TagsRepository struct {
@@ -17,8 +19,11 @@ func NewTagsRepository(state *services.GlobalState) *TagsRepository {
 	return &TagsRepository{connection: state.DbConnection}
 }
 
-func (repository *TagsRepository) GetTags(userInfo *models.UserInfo) ([]*models.Tag, error) {
-	query := curry.Select("id, name", "tags", "").Where(curry.WhereBegin(curry.NewWhereItem("user_id", "=", curry.NewParameter(userInfo.UserId))))
+func (repository *TagsRepository) GetTags(userInfo *models.UserInfo, name string) ([]*models.Tag, error) {
+	userIdFilter := curry.NewWhereItem("user_id", "=", curry.NewParameter(userInfo.UserId))
+	nameLike := fmt.Sprintf("%%%s%%", strings.ToUpper(name))
+	tagNameFilter := curry.NewWhereItem("name_normalised", "like", curry.NewOptionalParameter(nameLike, "'%%'"))
+	query := curry.Select("id, name", "tags", "").Where(curry.WhereBegin(userIdFilter).And(tagNameFilter))
 	sql, parameters, err := query.ToExecutable()
 	if err != nil {
 		log.Warnf("Failed to generate sql query: %s", err.Error())
