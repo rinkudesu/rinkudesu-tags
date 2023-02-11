@@ -18,7 +18,9 @@ func NewTagsController(repository *repositories.TagsRepository) *TagsController 
 
 func (controller *TagsController) GetTags(c *gin.Context) {
 	var query struct {
-		Name string `form:"name"`
+		Name   string `form:"name"`
+		Offset int    `form:"offset"`
+		Limit  int    `form:"limit"`
 	}
 	if err := c.BindQuery(&query); err != nil {
 		log.Warnf("Failed to bind tags query string: %s", err.Error())
@@ -26,7 +28,7 @@ func (controller *TagsController) GetTags(c *gin.Context) {
 		return
 	}
 
-	tags, err := controller.repository.GetTags(GetUserInfo(c), query.Name)
+	tags, err := controller.repository.GetTags(GetUserInfo(c), query.Name, query.Offset, query.Limit)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return

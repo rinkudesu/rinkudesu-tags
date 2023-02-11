@@ -44,7 +44,7 @@ func TestTagsRepository_GetAll_TagsPresent(t *testing.T) {
 	}
 	tagIds := test.addTags(t, tags)
 
-	result, err := test.repo.GetTags(test.userInfo, "")
+	result, err := test.repo.GetTags(test.userInfo, "", 0, 0)
 
 	assert.Nil(t, err)
 	assert.Equal(t, 3, len(result))
@@ -67,7 +67,7 @@ func TestTagsRepository_GetAll_TagsCreatedByAnotherUser_ReturnsEmptySlice(t *tes
 	anotherUserId, _ := uuid.NewV4()
 	anotherUserInfo := models.UserInfo{UserId: anotherUserId}
 
-	result, err := test.repo.GetTags(&anotherUserInfo, "")
+	result, err := test.repo.GetTags(&anotherUserInfo, "", 0, 0)
 
 	assert.Nil(t, err)
 	assert.Empty(t, result)
@@ -78,7 +78,7 @@ func TestTagsRepository_GetAll_NoTagsReturnsEmpty(t *testing.T) {
 	t.Parallel()
 	t.Cleanup(test.close)
 
-	result, err := test.repo.GetTags(test.userInfo, "")
+	result, err := test.repo.GetTags(test.userInfo, "", 0, 0)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
@@ -154,7 +154,7 @@ func TestTagsRepository_Create_DuplicateName(t *testing.T) {
 	assert.Nil(t, result)
 	assert.NotNil(t, err)
 	assert.Equal(t, AlreadyExistsErr, err)
-	tags, _ := test.repo.GetTags(test.userInfo, "")
+	tags, _ := test.repo.GetTags(test.userInfo, "", 0, 0)
 	assert.Equal(t, 1, len(tags))
 }
 
@@ -220,7 +220,7 @@ func TestTagsRepository_Update_TagNotFound(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, NotFoundErr, err)
 	assert.Nil(t, result)
-	loadedTags, _ := test.repo.GetTags(test.userInfo, "")
+	loadedTags, _ := test.repo.GetTags(test.userInfo, "", 0, 0)
 	assert.Empty(t, loadedTags)
 }
 
@@ -239,7 +239,7 @@ func TestTagsRepository_Update_TagCreatedByAnotherUser_NotFound(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, NotFoundErr, err)
 	assert.Nil(t, result)
-	loadedTags, _ := test.repo.GetTags(test.userInfo, "")
+	loadedTags, _ := test.repo.GetTags(test.userInfo, "", 0, 0)
 	assert.Equal(t, "test", loadedTags[0].Name)
 }
 
@@ -253,7 +253,7 @@ func TestTagsRepository_Delete_Deletes(t *testing.T) {
 	err := test.repo.Delete(tag.Id, test.userInfo)
 
 	assert.Nil(t, err)
-	tags, _ := test.repo.GetTags(test.userInfo, "")
+	tags, _ := test.repo.GetTags(test.userInfo, "", 0, 0)
 	assert.Empty(t, tags)
 }
 
@@ -267,7 +267,7 @@ func TestTagsRepository_Delete_NotFound(t *testing.T) {
 
 	assert.NotNil(t, err)
 	assert.Equal(t, NotFoundErr, err)
-	tags, _ := test.repo.GetTags(test.userInfo, "")
+	tags, _ := test.repo.GetTags(test.userInfo, "", 0, 0)
 	assert.Empty(t, tags)
 }
 
@@ -354,7 +354,7 @@ func TestTagsRepository_DeleteAllOfUser_NoneExistForUser(t *testing.T) {
 	err := test.repo.DeleteAllOfUser(test.userInfo.UserId)
 
 	assert.Nil(t, err)
-	existingLinks, _ := test.repo.GetTags(&anotherUserInfo, "")
+	existingLinks, _ := test.repo.GetTags(&anotherUserInfo, "", 0, 0)
 	assert.NotEmpty(t, existingLinks)
 }
 
@@ -369,7 +369,7 @@ func TestTagsRepository_DeleteAllOfUser_ExistForUser(t *testing.T) {
 	err := test.repo.DeleteAllOfUser(test.userInfo.UserId)
 
 	assert.Nil(t, err)
-	existingLinks, _ := test.repo.GetTags(test.userInfo, "")
+	existingLinks, _ := test.repo.GetTags(test.userInfo, "", 0, 0)
 	assert.Empty(t, existingLinks)
 }
 
@@ -389,7 +389,7 @@ func TestTagsRepository_GetAllWithNameFilter_ReturnsMatchingOnly(t *testing.T) {
 	}
 	tagIds := test.addTags(t, tags)
 
-	result, err := test.repo.GetTags(test.userInfo, "tag")
+	result, err := test.repo.GetTags(test.userInfo, "tag", 0, 0)
 
 	assert.Nil(t, err)
 	assert.Equal(t, 6, len(result))
@@ -400,4 +400,22 @@ func TestTagsRepository_GetAllWithNameFilter_ReturnsMatchingOnly(t *testing.T) {
 	for i := 7; i < 8; i++ {
 		assert.False(t, test.containsTag(tags[i], result))
 	}
+}
+
+func TestTagsRepository_GetAllWithOffsetLimit_ReturnsRequiredOnly(t *testing.T) {
+	test := newTagsRepositoryTests()
+	t.Parallel()
+	t.Cleanup(test.close)
+	tags := []*models.Tag{
+		{Name: "tag 1"},
+		{Name: "tag 2"},
+		{Name: "tag 3"},
+	}
+	_ = test.addTags(t, tags)
+
+	result, err := test.repo.GetTags(test.userInfo, "", 1, 1)
+
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(result))
+	assert.Equal(t, tags[1].Name, result[0].Name)
 }
