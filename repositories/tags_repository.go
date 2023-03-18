@@ -23,7 +23,7 @@ func (repository *TagsRepository) GetTags(userInfo *models.UserInfo, name string
 	userIdFilter := curry.NewWhereItem("user_id", "=", curry.NewParameter(userInfo.UserId))
 	nameLike := fmt.Sprintf("%%%s%%", strings.ToUpper(name))
 	tagNameFilter := curry.NewWhereItem("name_normalised", "like", curry.NewOptionalParameter(nameLike, "'%%'"))
-	query := curry.Select("id, name", "tags", "").OrderBy("name_normalised").Where(curry.WhereBegin(userIdFilter).And(tagNameFilter)).Limit(limit).Offset(offset)
+	query := curry.Select("id, name, colour", "tags", "").OrderBy("name_normalised").Where(curry.WhereBegin(userIdFilter).And(tagNameFilter)).Limit(limit).Offset(offset)
 	sql, parameters, err := query.ToExecutable()
 	if err != nil {
 		log.Warnf("Failed to generate sql query: %s", err.Error())
@@ -39,19 +39,20 @@ func (repository *TagsRepository) GetTags(userInfo *models.UserInfo, name string
 	for rows.Next() {
 		var id uuid.UUID
 		var name string
+		var colour string
 
-		scanErr := rows.Scan(&id, &name)
+		scanErr := rows.Scan(&id, &name, &colour)
 		if scanErr != nil {
 			log.Warningf("Failed to scan tag: %s", scanErr.Error())
 			return nil, scanErr
 		}
-		tags = append(tags, &models.Tag{Id: id, Name: name})
+		tags = append(tags, &models.Tag{Id: id, Name: name, Colour: colour})
 	}
 	return tags, nil
 }
 
 func (repository *TagsRepository) GetTag(id uuid.UUID, userInfo *models.UserInfo) (*models.Tag, error) {
-	row, err := repository.connection.QueryRow("select name from tags where id = $1 and user_id = $2", id, userInfo.UserId)
+	row, err := repository.connection.QueryRow("select name, colour from tags where id = $1 and user_id = $2", id, userInfo.UserId)
 	if err != nil {
 		log.Warningf("Failed to query for tag: %s", err.Error())
 		return nil, err
@@ -68,7 +69,7 @@ func (repository *TagsRepository) GetTag(id uuid.UUID, userInfo *models.UserInfo
 }
 
 func (repository *TagsRepository) Create(tag *models.Tag, userInfo *models.UserInfo) (*models.Tag, error) {
-	result, err := repository.connection.QueryRow("insert into tags (name, user_id) values ($1, $2) returning id", tag.Name, userInfo.UserId)
+	result, err := repository.connection.QueryRow("insert into tags (name, user_id, colour) values ($1, $2, $3) returning id", tag.Name, userInfo.UserId, tag.Colour)
 	if err != nil {
 		log.Warningf("Error when inserting tag: %s", err.Error())
 		return nil, err
@@ -87,7 +88,7 @@ func (repository *TagsRepository) Create(tag *models.Tag, userInfo *models.UserI
 }
 
 func (repository *TagsRepository) Update(tag *models.Tag, userInfo *models.UserInfo) (*models.Tag, error) {
-	result, err := repository.connection.Exec("update tags set name = $1 where id = $3 and user_id = $2", tag.Name, userInfo.UserId, tag.Id)
+	result, err := repository.connection.Exec("update tags set name = $1, colour = $4 where id = $3 and user_id = $2", tag.Name, userInfo.UserId, tag.Id, tag.Colour)
 	if err != nil {
 		if IsPostgresDuplicateValue(err) {
 			return nil, AlreadyExistsErr
@@ -139,7 +140,8 @@ func (repository *TagsRepository) Exists(id uuid.UUID, userInfo *models.UserInfo
 
 func (repository *TagsRepository) scanIntoTag(row data.Row, id uuid.UUID) (*models.Tag, error) {
 	var name string
-	err := row.Scan(&name)
+	var colour string
+	err := row.Scan(&name, &colour)
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,1 @@
+alter table tags add column colour varchar(7) not null default '#edbd1e';

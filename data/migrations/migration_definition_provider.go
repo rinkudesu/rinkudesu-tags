@@ -20,7 +20,7 @@ func getMigrationDefinitions(start int, end int) *[]string {
 		if err != nil {
 			log.Panicf("Failed to open migration file for migration %d: %s", i, err.Error())
 		}
-		definitions[start-i] = string(file)
+		definitions[start+i] = string(file)
 	}
 	return &definitions
 }
