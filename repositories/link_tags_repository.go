@@ -81,7 +81,7 @@ func (repo *LinkTagsRepository) GetLinksForTag(tagId uuid.UUID, userInfo *models
 }
 
 func (repo *LinkTagsRepository) GetTagsForLink(linkId uuid.UUID, userInfo *models.UserInfo) (*[]models.Tag, error) {
-	tagRows, err := repo.connection.QueryRows("select t.id, t.name from link_tags lt join tags t on lt.tag_id = t.id where lt.link_id = $1 and t.user_id = $2 and lt.user_id = $2", linkId, userInfo.UserId)
+	tagRows, err := repo.connection.QueryRows("select t.id, t.name, t.colour from link_tags lt join tags t on lt.tag_id = t.id where lt.link_id = $1 and t.user_id = $2 and lt.user_id = $2", linkId, userInfo.UserId)
 	if err != nil {
 		log.Warningf("Failed to query for link_tags: %s", err.Error())
 		return nil, err
@@ -90,7 +90,7 @@ func (repo *LinkTagsRepository) GetTagsForLink(linkId uuid.UUID, userInfo *model
 	tags := make([]models.Tag, 0)
 	for tagRows.Next() {
 		newTag := models.Tag{}
-		err = tagRows.Scan(&newTag.Id, &newTag.Name)
+		err = tagRows.Scan(&newTag.Id, &newTag.Name, &newTag.Colour)
 		if err != nil {
 			log.Warningf("Failed to scan link: %s", err.Error())
 			return nil, err
