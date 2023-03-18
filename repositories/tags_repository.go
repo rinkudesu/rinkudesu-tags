@@ -145,5 +145,5 @@ func (repository *TagsRepository) scanIntoTag(row data.Row, id uuid.UUID) (*mode
 	if err != nil {
 		return nil, err
 	}
-	return &models.Tag{Id: id, Name: name}, nil
+	return &models.Tag{Id: id, Name: name, Colour: colour}, nil
 }
