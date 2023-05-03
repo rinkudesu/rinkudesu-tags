@@ -1,7 +1,6 @@
 package authorisation
 
 type Claims struct {
-	Id   string   `json:"sub"`
-	Aud  []string `json:"aud"`
-	Name string   `json:"preferred_username"`
+	Id  string   `json:"nameid"`
+	Aud []string `json:"-"`
 }

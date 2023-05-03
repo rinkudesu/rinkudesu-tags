@@ -78,5 +78,30 @@ func (handler *JWTHandler) GetClaims(token *oidc.IDToken) (*Claims, error) {
 		log.Warningf("Failed to read claims from jwt: %s", err.Error())
 		return nil, err
 	}
+
+	//attempt to parse claims with a single aud
+	singleAud := claimsSingleAud{}
+	err = token.Claims(&singleAud)
+	if err == nil {
+		readClaims.Aud = []string{singleAud.Aud}
+		return &readClaims, nil
+	}
+
+	//if that failed, attempt to parse aud array
+	multiAud := claimsArrayAud{}
+	err = token.Claims(&multiAud)
+	if err == nil {
+		readClaims.Aud = multiAud.Aud
+		return &readClaims, nil
+	}
+
 	return &readClaims, nil
+}
+
+type claimsSingleAud struct {
+	Aud string `json:"aud"`
+}
+
+type claimsArrayAud struct {
+	Aud []string `json:"aud"`
 }
