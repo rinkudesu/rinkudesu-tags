@@ -6,9 +6,9 @@
       <env name="RINKU_KAFKA_ADDRESS" value="localhost:9092" />
       <env name="RINKU_KAFKA_CLIENT_ID" value="rinkudesu-tags" />
       <env name="RINKU_KAFKA_CONSUMER_GROUP_ID" value="rinkudesu-tags" />
-      <env name="TAGS_AUTHORITY" value="http://localhost:8080/realms/rinkudesu" />
-      <env name="TAGS_DB" value="postgres://postgres:postgres@localhost:5432/rinkudesu_tags" />
       <env name="TAGS_ADDRESS" value="localhost:5010" />
+      <env name="TAGS_AUTHORITY" value="http://localhost:5500/" />
+      <env name="TAGS_DB" value="postgres://postgres:postgres@localhost:5432/rinkudesu_tags" />
     </envs>
     <kind value="PACKAGE" />
     <package value="rinkudesu-tags" />
