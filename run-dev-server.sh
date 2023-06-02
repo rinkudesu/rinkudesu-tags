@@ -1,0 +1,1 @@
+RINKU_KAFKA_ADDRESS="localhost:9092" RINKU_KAFKA_CLIENT_ID="rinkudesu-tags" RINKU_KAFKA_CONSUMER_GROUP_ID="rinkudesu-tags" TAGS_ADDRESS="localhost:5010" TAGS_AUTHORITY="http://localhost:5500/" TAGS_DB="postgres://postgres:postgres@localhost:5432/rinkudesu_tags" go run .
