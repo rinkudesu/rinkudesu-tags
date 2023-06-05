@@ -11,7 +11,7 @@ require (
 	github.com/jackc/pgtype v1.14.0
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/rinkudesu/curry v0.2.0
-	github.com/rinkudesu/go-kafka v0.1.2
+	github.com/rinkudesu/go-kafka v0.2.0
 	github.com/sirupsen/logrus v1.9.2
 	github.com/stretchr/testify v1.8.4
 )
