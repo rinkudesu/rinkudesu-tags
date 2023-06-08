@@ -28,9 +28,9 @@ func (controller *LinksController) CreateLink(c *gin.Context) {
 	err = controller.repository.Create(&link, GetUserInfo(c))
 	if err != nil {
 		if err == repositories.AlreadyExistsErr {
-			c.Status(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusBadRequest)
 		} else {
-			c.Status(http.StatusInternalServerError)
+			c.AbortWithStatus(http.StatusInternalServerError)
 		}
 		return
 	}
@@ -47,9 +47,9 @@ func (controller *LinksController) DeleteLink(c *gin.Context) {
 	err = controller.repository.Delete(linkUuid, GetUserInfo(c))
 	if err != nil {
 		if err == repositories.NotFoundErr {
-			c.Status(http.StatusNotFound)
+			c.AbortWithStatus(http.StatusNotFound)
 		} else {
-			c.Status(http.StatusInternalServerError)
+			c.AbortWithStatus(http.StatusInternalServerError)
 		}
 		return
 	}
