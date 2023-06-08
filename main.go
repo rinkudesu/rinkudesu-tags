@@ -14,6 +14,7 @@ import (
 	"rinkudesu-tags/models"
 	"rinkudesu-tags/repositories"
 	"rinkudesu-tags/services"
+	"time"
 )
 
 var (
@@ -58,9 +59,22 @@ func makeGlobalState() {
 	}
 
 	if !config.IgnoreAuthorisation {
-		jwtHandler, err = authorisation.NewJWTHandler(config)
-		if err != nil {
-			log.Panicf("Failed to initialise jwt handler: %s", err.Error())
+		attempt := 1
+		backoffDuration, _ := time.ParseDuration("10s")
+		for {
+			jwtHandler, err = authorisation.NewJWTHandler(config)
+			if err != nil {
+				if attempt < 5 {
+					log.Warningf("Failed to initialise jwt handler (will try again): %s", err.Error())
+				} else {
+					log.Panicf("Failed to initialise jwt handler, quitting: %s", err.Error())
+				}
+			} else {
+				log.Info("Jwt handler initialised successfully")
+				break
+			}
+			attempt++
+			time.Sleep(backoffDuration)
 		}
 	}
 
