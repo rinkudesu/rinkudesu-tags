@@ -30,7 +30,7 @@ func (controller *TagsController) GetTags(c *gin.Context) {
 
 	tags, err := controller.repository.GetTags(GetUserInfo(c), query.Name, query.Offset, query.Limit)
 	if err != nil {
-		c.Status(http.StatusInternalServerError)
+		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
@@ -46,9 +46,9 @@ func (controller *TagsController) GetTag(c *gin.Context) {
 	tag, err := controller.repository.GetTag(tagUuid, GetUserInfo(c))
 	if err != nil {
 		if err == repositories.NotFoundErr {
-			c.Status(http.StatusNotFound)
+			c.AbortWithStatus(http.StatusNotFound)
 		} else {
-			c.Status(http.StatusInternalServerError)
+			c.AbortWithStatus(http.StatusInternalServerError)
 		}
 		return
 	}
@@ -67,7 +67,7 @@ func (controller *TagsController) CreateTag(c *gin.Context) {
 	tag := tagVm.GetTag()
 	returnedTag, err := controller.repository.Create(&tag, GetUserInfo(c))
 	if err != nil {
-		c.Status(http.StatusBadRequest)
+		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 	c.JSON(http.StatusCreated, returnedTag)
@@ -84,9 +84,9 @@ func (controller *TagsController) UpdateTag(c *gin.Context) {
 	returnedTag, err := controller.repository.Update(&tag, GetUserInfo(c))
 	if err != nil {
 		if err == repositories.NotFoundErr {
-			c.Status(http.StatusNotFound)
+			c.AbortWithStatus(http.StatusNotFound)
 		} else {
-			c.Status(http.StatusInternalServerError)
+			c.AbortWithStatus(http.StatusInternalServerError)
 		}
 		return
 	}
@@ -103,9 +103,9 @@ func (controller *TagsController) DeleteTag(c *gin.Context) {
 	err = controller.repository.Delete(uuidValue, GetUserInfo(c))
 	if err != nil {
 		if err == repositories.NotFoundErr {
-			c.Status(http.StatusNotFound)
+			c.AbortWithStatus(http.StatusNotFound)
 		} else {
-			c.Status(http.StatusInternalServerError)
+			c.AbortWithStatus(http.StatusInternalServerError)
 		}
 		return
 	}
