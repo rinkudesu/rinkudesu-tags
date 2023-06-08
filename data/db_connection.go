@@ -13,6 +13,7 @@ import (
 var (
 	ConnectionClosedError   = errors.New("this connection to the database has already been closed")
 	AlreadyInitialisedError = errors.New("this connection to the database has already been initialised")
+	ConnectionError         = errors.New("failed to connect to the database")
 )
 
 type DbConnection struct {
@@ -45,7 +46,7 @@ func (connection *DbConnection) Initialise(connectionString string) error {
 	localPool, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
 		log.Errorf("Failed to connect to database: %s", err.Error())
-		return err
+		return ConnectionError
 	}
 
 	connection.pool = localPool
