@@ -52,15 +52,28 @@ func main() {
 }
 
 func makeGlobalState() {
+	backoffDuration, _ := time.ParseDuration("10s")
+	var err error
 	var connection = data.DbConnection{}
-	err := connection.Initialise(config.DbConnection)
-	if err != nil {
-		log.Panicf("Failed to initialise database connection: %s", err.Error())
+	dbAttempt := 1
+	for {
+		err := connection.Initialise(config.DbConnection)
+		if err != nil {
+			if err == data.ConnectionError && dbAttempt < 5 {
+				log.Warningf("Failed to connect to the database, will try again")
+			} else {
+				log.Panicf("Failed to initialise database connection: %s", err.Error())
+			}
+		} else {
+			log.Info("Database connection established successfully")
+			break
+		}
+		dbAttempt++
+		time.Sleep(backoffDuration)
 	}
 
 	if !config.IgnoreAuthorisation {
 		attempt := 1
-		backoffDuration, _ := time.ParseDuration("10s")
 		for {
 			jwtHandler, err = authorisation.NewJWTHandler(config)
 			if err != nil {
