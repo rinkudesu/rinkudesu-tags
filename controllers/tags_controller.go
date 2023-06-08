@@ -87,6 +87,7 @@ func (controller *TagsController) UpdateTag(c *gin.Context) {
 			c.AbortWithStatus(http.StatusNotFound)
 		} else if err == repositories.AlreadyExistsErr {
 			c.String(http.StatusBadRequest, "Tag already exists")
+			c.Abort()
 		} else {
 			c.AbortWithStatus(http.StatusInternalServerError)
 		}
