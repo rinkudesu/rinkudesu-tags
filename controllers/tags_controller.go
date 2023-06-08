@@ -67,7 +67,12 @@ func (controller *TagsController) CreateTag(c *gin.Context) {
 	tag := tagVm.GetTag()
 	returnedTag, err := controller.repository.Create(&tag, GetUserInfo(c))
 	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
+		if err == repositories.AlreadyExistsErr {
+			c.String(http.StatusBadRequest, "Tag already exists")
+			c.Abort()
+		} else {
+			c.AbortWithStatus(http.StatusInternalServerError)
+		}
 		return
 	}
 	c.JSON(http.StatusCreated, returnedTag)
@@ -87,6 +92,7 @@ func (controller *TagsController) UpdateTag(c *gin.Context) {
 			c.AbortWithStatus(http.StatusNotFound)
 		} else if err == repositories.AlreadyExistsErr {
 			c.String(http.StatusBadRequest, "Tag already exists")
+			c.Abort()
 		} else {
 			c.AbortWithStatus(http.StatusInternalServerError)
 		}
