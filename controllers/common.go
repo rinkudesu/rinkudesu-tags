@@ -22,7 +22,7 @@ func BindJson(c *gin.Context, obj any) error {
 	err := c.BindJSON(obj)
 	if err != nil {
 		log.Infof("Failed to parse json: %s", err.Error())
-		c.Status(http.StatusBadRequest)
+		c.AbortWithStatus(http.StatusBadRequest)
 	}
 	return err
 }
