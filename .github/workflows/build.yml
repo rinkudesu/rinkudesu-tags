@@ -10,7 +10,7 @@ jobs:
     name: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version: '>=1.17.0'
@@ -35,7 +35,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version: '>=1.17.0'
@@ -60,7 +60,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - uses: actions/setup-go@v4
