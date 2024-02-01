@@ -8,7 +8,7 @@ require (
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/google/wire v0.5.0
 	github.com/jackc/pgconn v1.14.1
-	github.com/jackc/pgtype v1.14.0
+	github.com/jackc/pgtype v1.14.1
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/rinkudesu/curry v0.2.0
 	github.com/rinkudesu/go-kafka v0.2.0
